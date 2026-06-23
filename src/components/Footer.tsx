@@ -39,9 +39,9 @@ export default function Footer() {
         <div>
           <h4 className="font-semibold text-medical-dark mb-3 text-sm">Contact</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> hello@arogyasathi.ai</li>
-            <li className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> +91 98765 43210</li>
-            <li className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> Ahmedabad, India</li>
+            <li className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> dipenpatel@gmail.com</li>
+            <li className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> +91 7567304075</li>
+            <li className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> Vadodara, India</li>
           </ul>
         </div>
       </div>
