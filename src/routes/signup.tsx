@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, Phone, ArrowRight, Check, ArrowLeft, RefreshCw, ExternalLink } from "lucide-react";
+import { Mail, Lock, User, Phone, ArrowRight, Check, ArrowLeft, RefreshCw, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useState } from "react";
 import logo from "@/assets/logo.png";
@@ -26,6 +26,8 @@ function Signup() {
   const [devVerifyUrl, setDevVerifyUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tempFormData, setTempFormData] = useState<Form | null>(null);
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
 
   const onSubmit = async (data: Form) => {
     if (data.password !== data.confirm) { setError("Passwords don't match"); return; }
@@ -118,10 +120,45 @@ function Signup() {
                 <input className="input" placeholder="+91 98765 43210" {...register("phone", { required: "Phone is required" })} disabled={isSubmitting} />
               </Field>
               <Field label="Password" icon={Lock} error={errors.password?.message}>
-                <input className="input" type="password" placeholder="At least 6 characters" {...register("password", { required: "Password is required", minLength: { value: 6, message: "Min 6 characters" } })} disabled={isSubmitting} />
+                <input
+                  className="input pr-10"
+                  type={showPw ? "text" : "password"}
+                  placeholder="At least 8 characters"
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: { value: 8, message: "Password must be at least 8 characters long" },
+                    validate: {
+                      hasCapital: (v: string) => /[A-Z]/.test(v) || "Password must contain at least one uppercase letter",
+                      hasSmall: (v: string) => /[a-z]/.test(v) || "Password must contain at least one lowercase letter",
+                      hasNumber: (v: string) => /[0-9]/.test(v) || "Password must contain at least one number",
+                      hasSpecial: (v: string) => /[!@#$%^&*(),.?":{}|<>]/.test(v) || "Password must contain at least one special character",
+                    }
+                  })}
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(!showPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-medical-dark"
+                >
+                  {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </Field>
               <Field label="Confirm Password" icon={Lock} error={errors.confirm?.message}>
-                <input className="input" type="password" placeholder="Repeat password" {...register("confirm", { required: "Please confirm", validate: v => v === pw || "Passwords don't match" })} disabled={isSubmitting} />
+                <input
+                  className="input pr-10"
+                  type={showConfirmPw ? "text" : "password"}
+                  placeholder="Repeat password"
+                  {...register("confirm", { required: "Please confirm", validate: v => v === pw || "Passwords don't match" })}
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPw(!showConfirmPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-medical-dark"
+                >
+                  {showConfirmPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </Field>
 
               <button
