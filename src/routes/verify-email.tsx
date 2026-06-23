@@ -96,7 +96,7 @@ function VerifyEmail() {
         </Link>
         <div className="relative z-10">
           <h1 className="font-display text-4xl font-bold leading-tight">Verification in progress.<br />Setting up your portal.</h1>
-          <p className="mt-3 text-white/85 max-w-md">We secure your patient account to keep all health records, chats, and detections private on your device.</p>
+          <p className="mt-3 text-white/85 max-w-md">We secure your patient account to keep all health records, chats, and detections private on your device And dont reply.</p>
         </div>
         <div className="relative z-10 flex items-center gap-2 text-white/80 text-sm">
           <Heart className="h-4 w-4" /> Secure Health Data Protection
@@ -112,9 +112,9 @@ function VerifyEmail() {
           <span className="font-display font-bold text-gradient">ArogyaSathi</span>
         </Link>
 
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }} 
-          animate={{ opacity: 1, scale: 1 }} 
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-md p-8 rounded-2xl border border-border bg-card shadow-lg text-center flex flex-col items-center space-y-6"
         >
           {status === "loading" && (
@@ -135,10 +135,10 @@ function VerifyEmail() {
               <h2 className="font-display text-2xl font-bold text-emerald-800">Verified!</h2>
               <p className="text-muted-foreground text-sm leading-relaxed">{message}</p>
               <div className="w-full h-1 bg-muted rounded-full overflow-hidden mt-4">
-                <motion.div 
-                  initial={{ width: 0 }} 
-                  animate={{ width: "100%" }} 
-                  transition={{ duration: 3 }} 
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 3 }}
                   className="h-full bg-emerald-500"
                 />
               </div>
@@ -152,16 +152,16 @@ function VerifyEmail() {
               </div>
               <h2 className="font-display text-2xl font-bold text-rose-800">Verification Failed</h2>
               <p className="text-rose-700/80 text-sm leading-relaxed">{message}</p>
-              
+
               <div className="flex flex-col gap-3 w-full pt-4">
-                <Link 
-                  to="/signup" 
+                <Link
+                  to="/signup"
                   className="ripple w-full inline-flex items-center justify-center py-2.5 rounded-xl gradient-medical text-white font-semibold shadow-sm hover:opacity-95 transition"
                 >
                   Return to Signup
                 </Link>
-                <Link 
-                  to="/" 
+                <Link
+                  to="/"
                   className="w-full inline-flex items-center justify-center py-2.5 rounded-xl border border-border bg-background text-muted-foreground font-semibold hover:bg-muted transition"
                 >
                   Go Home
