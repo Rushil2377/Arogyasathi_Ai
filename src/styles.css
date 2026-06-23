@@ -202,3 +202,21 @@
   background-size: 1000px 100%;
   animation: shimmer 2s linear infinite;
 }
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -20;
+  background-image: url("./assets/logo.png");
+  background-size: min(70vw, 550px);
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.20;
+  pointer-events: none;
+}
+
+/* Make page wrappers transparent to let the body background image show through */
+.min-h-screen.bg-background {
+  background-color: transparent !important;
+}

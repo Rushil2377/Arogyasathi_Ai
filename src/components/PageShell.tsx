@@ -8,7 +8,7 @@ import { Link } from "@tanstack/react-router";
 
 export default function PageShell({
   children,
-  showWatermark = true,
+  showWatermark = false,
   showFooter = true,
 }: {
   children: ReactNode;

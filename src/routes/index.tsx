@@ -3,11 +3,10 @@ import { motion } from "framer-motion";
 import {
   Bot, Camera, FileText, Stethoscope, ArrowRight, Sparkles,
   Languages, ShieldCheck, Activity, Users, Clock, TrendingUp,
-  HeartPulse, MapPin, Mic, ScanLine, Pill, BrainCircuit, Star,
+  HeartPulse, MapPin, Mic, ScanLine, BrainCircuit, Star,
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import Reveal, { Counter } from "@/components/Reveal";
-import heroImg from "@/assets/hero.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -129,43 +128,6 @@ function Home() {
           >
             <div className="relative aspect-square max-w-lg mx-auto">
               <div className="absolute inset-0 rounded-[40%_60%_60%_40%_/_50%_50%_50%_50%] gradient-soft blur-2xl animate-float" />
-              <img
-                src={heroImg}
-                alt="AI doctor companion"
-                width={1024}
-                height={1024}
-                className="relative rounded-3xl shadow-[var(--shadow-elegant)]"
-              />
-              {/* floating cards */}
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity }}
-                className="absolute -left-4 top-10 glass rounded-2xl p-3 flex items-center gap-2 shadow-[var(--shadow-glass)]"
-              >
-                <HeartPulse className="h-5 w-5 text-medical-light" />
-                <div>
-                  <div className="text-[10px] text-muted-foreground">Heart rate</div>
-                  <div className="text-sm font-bold text-medical-dark">72 bpm</div>
-                </div>
-              </motion.div>
-              <motion.div
-                animate={{ y: [0, 10, 0] }}
-                transition={{ duration: 5, repeat: Infinity }}
-                className="absolute -right-4 bottom-12 glass rounded-2xl p-3 flex items-center gap-2"
-              >
-                <ShieldCheck className="h-5 w-5 text-medical-light" />
-                <div>
-                  <div className="text-[10px] text-muted-foreground">AI confidence</div>
-                  <div className="text-sm font-bold text-medical-dark">96%</div>
-                </div>
-              </motion.div>
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 4.5, repeat: Infinity, delay: 0.5 }}
-                className="absolute right-10 top-2 h-12 w-12 rounded-2xl gradient-medical flex items-center justify-center text-white shadow-[var(--shadow-glow)]"
-              >
-                <Pill className="h-5 w-5" />
-              </motion.div>
             </div>
           </motion.div>
         </div>
