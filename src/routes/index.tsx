@@ -93,8 +93,8 @@ const innovations = [
   },
   {
     icon: Stethoscope,
-    title: "Expert Consultation",
-    desc: "Bridge patients to specialists with verified credentials.",
+    title: "Nearby Hospitals",
+    desc: "Get connected to nearby hospitals",
   },
 ];
 

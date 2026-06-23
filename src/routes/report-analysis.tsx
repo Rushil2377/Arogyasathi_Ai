@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -116,11 +116,29 @@ const statusBadge: Record<string, string> = {
 };
 
 function ReportsAndDoctors() {
+  const navigate = useNavigate();
   const [reports, setReports] = useState<ReportRecord[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleDiscussReport = (r: ReportRecord) => {
+    const findingsText = r.findings.map((f) => `${f.label}: ${f.value} (${f.status})`).join(", ");
+    const recommendationsText = r.recommendations.join(". ");
+    const messageText = `I want to discuss my medical report "${r.name}".
+Summary: ${r.summary}
+Risk Level: ${r.riskLevel}
+Findings: ${findingsText}
+Recommendations: ${recommendationsText}`;
+
+    navigate({
+      to: "/ai-health-assistant",
+      search: {
+        reportText: messageText,
+      },
+    });
+  };
 
   const [hospitalsList, setHospitalsList] = useState<
     {
@@ -574,6 +592,16 @@ function ReportsAndDoctors() {
                           </li>
                         ))}
                       </ul>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-border flex justify-end">
+                      <button
+                        onClick={() => handleDiscussReport(r)}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-medical-light hover:text-medical-dark transition cursor-pointer"
+                      >
+                        <Brain className="h-3.5 w-3.5" />
+                        Discuss report with AI Health Assistant &rarr;
+                      </button>
                     </div>
                   </motion.div>
                 ))}

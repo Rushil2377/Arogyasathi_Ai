@@ -6,7 +6,16 @@ import PageShell from "@/components/PageShell";
 import { storage, KEYS } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 
+type SearchParams = {
+  reportText?: string;
+};
+
 export const Route = createFileRoute("/ai-health-assistant")({
+  validateSearch: (search: Record<string, unknown>): SearchParams => {
+    return {
+      reportText: search.reportText as string | undefined,
+    };
+  },
   beforeLoad: async () => {
     const {
       data: { session },
@@ -83,6 +92,7 @@ const mockReply = (msg: string, lang: string): string => {
 };
 
 function Assistant() {
+  const { reportText } = Route.useSearch();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [lang, setLang] = useState("en");
@@ -90,6 +100,20 @@ function Assistant() {
   const [userId, setUserId] = useState<string | null>(null);
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const initialSent = useRef(false);
+
+  useEffect(() => {
+    if (reportText && !initialSent.current && userId) {
+      initialSent.current = true;
+      send(reportText);
+
+      // Clean up search param from URL so it doesn't send again on refresh
+      const searchParams = new URLSearchParams(window.location.search);
+      searchParams.delete("reportText");
+      const newPath = window.location.pathname + (searchParams.toString() ? "?" + searchParams.toString() : "");
+      window.history.replaceState(null, "", newPath);
+    }
+  }, [reportText, userId]);
 
   useEffect(() => {
     const initChat = async () => {
