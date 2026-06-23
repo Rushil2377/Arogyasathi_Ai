@@ -106,8 +106,6 @@ const roadmap = [
   { phase: "Phase 5", title: "Recommend Doctors and Specialists" },
 ];
 
-
-
 function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 

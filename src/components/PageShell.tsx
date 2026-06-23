@@ -68,7 +68,11 @@ export default function PageShell({
       >
         {children}
       </motion.main>
-      {showFooter && <div className="relative z-10"><Footer /></div>}
+      {showFooter && (
+        <div className="relative z-10">
+          <Footer />
+        </div>
+      )}
 
       {/* Floating support */}
       <Link

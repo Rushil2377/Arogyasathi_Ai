@@ -110,7 +110,8 @@ function Assistant() {
       // Clean up search param from URL so it doesn't send again on refresh
       const searchParams = new URLSearchParams(window.location.search);
       searchParams.delete("reportText");
-      const newPath = window.location.pathname + (searchParams.toString() ? "?" + searchParams.toString() : "");
+      const newPath =
+        window.location.pathname + (searchParams.toString() ? "?" + searchParams.toString() : "");
       window.history.replaceState(null, "", newPath);
     }
   }, [reportText, userId]);
