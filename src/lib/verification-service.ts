@@ -1,6 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import nodemailer from "nodemailer";
-import crypto from "crypto";
 
 // Server-side in-memory map to store verification tokens and corresponding user registration data
 const verificationStore = new Map<string, { data: any; expiresAt: number }>();
@@ -15,7 +13,7 @@ export const sendVerificationEmailFn = createServerFn({ method: "POST" })
     }
 
     // Generate unique token
-    const token = crypto.randomUUID();
+    const token = globalThis.crypto.randomUUID();
     // Token is valid for 1 hour
     const expiresAt = Date.now() + 60 * 60 * 1000;
 
@@ -43,6 +41,8 @@ export const sendVerificationEmailFn = createServerFn({ method: "POST" })
 
     const cleanedPass = smtpPass.replace(/\s+/g, "");
 
+    const moduleName = "nodemailer";
+    const nodemailer = (await import(/* @vite-ignore */ moduleName)).default;
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {

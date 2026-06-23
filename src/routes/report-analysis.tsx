@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -11,6 +11,12 @@ import { storage, KEYS } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/report-analysis")({
+  beforeLoad: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw redirect({ to: "/login" });
+    }
+  },
   head: () => ({ meta: [{ title: "Report Analysis & Expert Consultation • ArogyaSathi AI" }] }),
   component: ReportsAndDoctors,
 });

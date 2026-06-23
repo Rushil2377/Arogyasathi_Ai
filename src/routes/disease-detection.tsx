@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, ImageIcon, ScanLine, AlertCircle, Check, Trash2, Clock, ShieldCheck } from "lucide-react";
@@ -8,6 +8,12 @@ import { storage, KEYS } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/disease-detection")({
+  beforeLoad: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw redirect({ to: "/login" });
+    }
+  },
   head: () => ({ meta: [{ title: "Disease Detection • ArogyaSathi AI" }] }),
   component: Detection,
 });

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Mic, Bot, User, Sparkles, Globe, Trash2 } from "lucide-react";
@@ -7,6 +7,12 @@ import { storage, KEYS } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ai-health-assistant")({
+  beforeLoad: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw redirect({ to: "/login" });
+    }
+  },
   head: () => ({ meta: [{ title: "AI Health Assistant • ArogyaSathi AI" }] }),
   component: Assistant,
 });
