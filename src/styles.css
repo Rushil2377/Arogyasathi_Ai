@@ -120,6 +120,12 @@
     font-feature-settings: "cv11", "ss01";
   }
   h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); letter-spacing: -0.02em; }
+
+  /* Hide native browser password reveal eye and clear icons */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none;
+  }
 }
 
 @utility glass {

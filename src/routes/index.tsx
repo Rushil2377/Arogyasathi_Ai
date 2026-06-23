@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import {
   Bot, Camera, FileText, Stethoscope, ArrowRight, Sparkles,
   Languages, ShieldCheck, Activity, Users, Clock, TrendingUp,
@@ -7,6 +8,7 @@ import {
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import Reveal, { Counter } from "@/components/Reveal";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -50,6 +52,24 @@ const testimonials = [
 ];
 
 function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   return (
     <PageShell>
       {/* HERO */}
@@ -288,23 +308,25 @@ function Home() {
       </section>
 
       {/* CTA */}
-      <section className="px-4 sm:px-6 pb-20">
-        <Reveal className="mx-auto max-w-5xl rounded-[2rem] gradient-medical text-white p-10 sm:p-14 text-center relative overflow-hidden shadow-[var(--shadow-elegant)]">
-          <div className="absolute inset-0 opacity-30">
-            <Activity className="absolute top-6 left-6 h-10 w-10" />
-            <HeartPulse className="absolute bottom-6 right-6 h-12 w-12" />
-            <MapPin className="absolute top-10 right-1/3 h-8 w-8" />
-            <Clock className="absolute bottom-10 left-1/3 h-9 w-9" />
-          </div>
-          <div className="relative">
-            <h2 className="font-display text-3xl sm:text-4xl font-bold">Healthcare in your pocket. Right now.</h2>
-            <p className="mt-3 text-white/85 max-w-xl mx-auto">Join ArogyaSathi for faster, smarter, more accessible care.</p>
-            <Link to="/signup" className="ripple mt-7 inline-flex items-center gap-2 px-7 py-3 rounded-full bg-white text-medical-dark font-bold hover:-translate-y-0.5 transition">
-              Create free account <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </Reveal>
-      </section>
+      {!isLoggedIn && (
+        <section className="px-4 sm:px-6 pb-20">
+          <Reveal className="mx-auto max-w-5xl rounded-[2rem] gradient-medical text-white p-10 sm:p-14 text-center relative overflow-hidden shadow-[var(--shadow-elegant)]">
+            <div className="absolute inset-0 opacity-30">
+              <Activity className="absolute top-6 left-6 h-10 w-10" />
+              <HeartPulse className="absolute bottom-6 right-6 h-12 w-12" />
+              <MapPin className="absolute top-10 right-1/3 h-8 w-8" />
+              <Clock className="absolute bottom-10 left-1/3 h-9 w-9" />
+            </div>
+            <div className="relative">
+              <h2 className="font-display text-3xl sm:text-4xl font-bold">Healthcare in your pocket. Right now.</h2>
+              <p className="mt-3 text-white/85 max-w-xl mx-auto">Join ArogyaSathi for faster, smarter, more accessible care.</p>
+              <Link to="/signup" className="ripple mt-7 inline-flex items-center gap-2 px-7 py-3 rounded-full bg-white text-medical-dark font-bold hover:-translate-y-0.5 transition">
+                Create free account <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </Reveal>
+        </section>
+      )}
     </PageShell>
   );
 }
