@@ -63,9 +63,9 @@ const features = [
   },
   {
     icon: Stethoscope,
-    title: "Expert Doctor Consultation",
-    desc: "Connect to specialists with an AI-prepared summary.",
-    points: ["Verified specialists", "AI patient summary", "Faster consultation"],
+    title: "Nearby Hospitals",
+    desc: "Connect to nearby hospitals and doctors with AI-prepared summary.",
+    points: ["Variable distance search", "City wise search", "One-click navigation"],
     to: "/report-analysis",
   },
 ];
@@ -106,33 +106,7 @@ const roadmap = [
   { phase: "Phase 5", title: "Recommend Doctors and Specialists" },
 ];
 
-const testimonials = [
-  {
-    name: "Dr. Meera Shah",
-    role: "General Physician, Ahmedabad",
-    text: "ArogyaSathi's AI summaries cut my consultation prep time in half.",
-  },
-  {
-    name: "Rahul Patel",
-    role: "Patient, rural Gujarat",
-    text: "I uploaded my blood report in Gujarati and finally understood what it meant.",
-  },
-  {
-    name: "Anjali Verma",
-    role: "ASHA worker",
-    text: "The disease detection helps me triage skin conditions in remote villages.",
-  },
-  {
-    name: "Dr. Imran Khan",
-    role: "Dermatologist",
-    text: "Surprisingly accurate first-pass predictions. A real productivity tool.",
-  },
-  {
-    name: "Priya N.",
-    role: "Caregiver",
-    text: "My mother chats with the assistant in Hindi every morning. Game changer.",
-  },
-];
+
 
 function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
