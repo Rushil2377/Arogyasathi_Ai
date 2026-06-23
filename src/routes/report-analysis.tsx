@@ -61,12 +61,6 @@ const sampleReports: Omit<ReportRecord, "id" | "name" | "time">[] = [
   },
 ];
 
-const doctors = [
-  { name: "Dr. Meera Shah", spec: "General Physician", exp: 12, avail: "Available today", rating: 4.9, color: "from-medical-dark to-medical-light" },
-  { name: "Dr. Imran Khan", spec: "Dermatologist", exp: 9, avail: "Tomorrow, 11 AM", rating: 4.8, color: "from-medical-light to-medical-dark" },
-  { name: "Dr. Priya Nair", spec: "Endocrinologist", exp: 15, avail: "Available today", rating: 5.0, color: "from-medical-dark to-medical-light" },
-  { name: "Dr. Arjun Mehta", spec: "Cardiologist", exp: 18, avail: "Thursday, 4 PM", rating: 4.9, color: "from-medical-light to-medical-dark" },
-];
 
 const hospitals = [
   { name: "Apollo Hospital", distance: "2.4 km", phone: "+91 79 6670 1800", x: 60, y: 35 },
@@ -340,37 +334,7 @@ function ReportsAndDoctors() {
             </Reveal>
           )}
 
-          {/* DOCTORS */}
-          <section className="mt-14">
-            <Reveal>
-              <div className="flex items-center gap-3 mb-6">
-                <Stethoscope className="h-5 w-5 text-medical-light" />
-                <h2 className="font-display text-2xl font-bold text-medical-dark">Recommended specialists</h2>
-              </div>
-            </Reveal>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {doctors.map((d, i) => (
-                <Reveal key={d.name} delay={i * 0.07}>
-                  <div className="group h-full glass rounded-3xl p-5 hover-lift">
-                    <div className={`h-16 w-16 rounded-2xl bg-gradient-to-br ${d.color} flex items-center justify-center text-white text-xl font-bold font-display shadow-[var(--shadow-glow)]`}>
-                      {d.name.split(" ").slice(-1)[0][0]}
-                    </div>
-                    <h3 className="mt-4 font-display font-bold text-medical-dark">{d.name}</h3>
-                    <div className="text-xs text-medical-light font-semibold">{d.spec}</div>
-                    <div className="mt-3 text-xs text-muted-foreground">{d.exp} yrs experience</div>
-                    <div className="mt-1 flex items-center gap-1 text-xs">
-                      <Star className="h-3 w-3 fill-medical-light text-medical-light" />
-                      <span className="font-semibold text-medical-dark">{d.rating}</span>
-                    </div>
-                    <div className="mt-3 text-xs font-semibold text-medical-dark/80">{d.avail}</div>
-                    <button className="ripple mt-4 w-full py-2 rounded-xl gradient-medical text-white text-xs font-bold shadow-[var(--shadow-glow)] hover:-translate-y-0.5 transition">
-                      Book consultation
-                    </button>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </section>
+          
 
           {/* HOSPITALS / MAP */}
           <section className="mt-14">

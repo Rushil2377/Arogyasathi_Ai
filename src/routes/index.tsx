@@ -34,11 +34,11 @@ const innovations = [
 ];
 
 const roadmap = [
-  { phase: "Phase 1", title: "AI Assistant", status: "Live" },
-  { phase: "Phase 2", title: "Disease Detection", status: "Live" },
-  { phase: "Phase 3", title: "Doctor Consultation", status: "Beta" },
-  { phase: "Phase 4", title: "Health Records", status: "Q2 2026" },
-  { phase: "Phase 5", title: "Wearable Integration", status: "Q4 2026" },
+  { phase: "Phase 1", title: "Live Sessions With Doctors" },
+  { phase: "Phase 2", title: "Speech Recognisation"},
+  { phase: "Phase 3", title: "Hospital Links" },
+  { phase: "Phase 4", title: "Show Government schemes" },
+  { phase: "Phase 5", title: "Recommend Doctors and Specialists"},
 ];
 
 const testimonials = [
@@ -105,18 +105,7 @@ function Home() {
               </a>
             </motion.div>
 
-            <div className="mt-10 grid grid-cols-3 gap-3 max-w-md">
-              {[
-                { k: <Counter to={50000} suffix="+" />, l: "Users" },
-                { k: <Counter to={120} suffix="+" />, l: "Diseases" },
-                { k: <Counter to={98} suffix="%" />, l: "Accuracy" },
-              ].map((s, i) => (
-                <Reveal key={i} delay={i * 0.06} className="text-center">
-                  <div className="font-display text-2xl font-bold text-medical-dark">{s.k}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{s.l}</div>
-                </Reveal>
-              ))}
-            </div>
+
           </div>
 
           {/* Hero illustration */}
@@ -276,29 +265,6 @@ function Home() {
         </div>
       </section>
 
-      {/* TESTIMONIALS marquee */}
-      <section className="py-16 overflow-hidden">
-        <Reveal className="text-center mb-10">
-          <span className="text-xs font-bold tracking-[0.2em] text-medical-light uppercase">Loved by</span>
-          <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-medical-dark">Doctors and patients</h2>
-        </Reveal>
-        <div className="relative">
-          <div className="flex gap-5 animate-marquee w-max">
-            {[...testimonials, ...testimonials].map((t, i) => (
-              <div key={i} className="w-[320px] shrink-0 glass rounded-2xl p-5">
-                <div className="flex gap-0.5 mb-2 text-medical-light">
-                  {Array.from({ length: 5 }).map((_, k) => <Star key={k} className="h-3.5 w-3.5 fill-current" />)}
-                </div>
-                <p className="text-sm text-foreground leading-relaxed">"{t.text}"</p>
-                <div className="mt-3 pt-3 border-t border-border">
-                  <div className="text-sm font-semibold text-medical-dark">{t.name}</div>
-                  <div className="text-xs text-muted-foreground">{t.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ROADMAP */}
       <section className="px-4 sm:px-6 py-20">
@@ -313,10 +279,7 @@ function Home() {
                 <div className="glass rounded-2xl p-5 h-full hover-lift relative">
                   <div className="text-xs font-bold text-medical-light tracking-widest">{r.phase}</div>
                   <div className="mt-2 font-display text-base font-bold text-medical-dark">{r.title}</div>
-                  <div className="mt-4 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full bg-medical-tint text-medical-dark">
-                    <span className="h-1.5 w-1.5 rounded-full bg-medical-light" />
-                    {r.status}
-                  </div>
+                  
                 </div>
               </Reveal>
             ))}
@@ -335,7 +298,7 @@ function Home() {
           </div>
           <div className="relative">
             <h2 className="font-display text-3xl sm:text-4xl font-bold">Healthcare in your pocket. Right now.</h2>
-            <p className="mt-3 text-white/85 max-w-xl mx-auto">Join thousands using ArogyaSathi for faster, smarter, more accessible care.</p>
+            <p className="mt-3 text-white/85 max-w-xl mx-auto">Join ArogyaSathi for faster, smarter, more accessible care.</p>
             <Link to="/signup" className="ripple mt-7 inline-flex items-center gap-2 px-7 py-3 rounded-full bg-white text-medical-dark font-bold hover:-translate-y-0.5 transition">
               Create free account <ArrowRight className="h-4 w-4" />
             </Link>
