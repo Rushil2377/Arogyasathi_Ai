@@ -15,7 +15,11 @@ export const Route = createFileRoute("/login")({
 type Form = { email: string; password: string; remember: boolean };
 
 function Login() {
-  const { register, handleSubmit, formState: { errors } } = useForm<Form>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Form>();
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -77,14 +81,26 @@ function Login() {
           <span className="font-display text-xl font-bold">ArogyaSathi AI</span>
         </Link>
         <div className="relative z-10">
-          <h1 className="font-display text-4xl font-bold leading-tight">Welcome back.<br />Your health, simplified.</h1>
-          <p className="mt-3 text-white/85 max-w-md">Pick up where you left off — chats, reports, and detections stay synced on your device.</p>
+          <h1 className="font-display text-4xl font-bold leading-tight">
+            Welcome back.
+            <br />
+            Your health, simplified.
+          </h1>
+          <p className="mt-3 text-white/85 max-w-md">
+            Pick up where you left off — chats, reports, and detections stay synced on your device.
+          </p>
         </div>
         <div className="relative z-10 flex items-center gap-2 text-white/80 text-sm">
           <Heart className="h-4 w-4" /> Trusted by 50,000+ users
         </div>
-        <div aria-hidden className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-        <div aria-hidden className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-medical-light/30 blur-3xl" />
+        <div
+          aria-hidden
+          className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-white/10 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-medical-light/30 blur-3xl"
+        />
       </div>
 
       {/* form */}
@@ -93,16 +109,27 @@ function Login() {
           <img src={logo} alt="" width={32} height={32} className="h-8 w-8" />
           <span className="font-display font-bold text-gradient">ArogyaSathi</span>
         </Link>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md"
+        >
           {step === "login" ? (
             <>
               <h2 className="font-display text-3xl font-bold text-medical-dark">Patient login</h2>
-              <p className="mt-2 text-sm text-muted-foreground">New here?{" "}
-                <Link to="/signup" className="text-medical-light font-semibold hover:underline">Create an account</Link>
+              <p className="mt-2 text-sm text-muted-foreground">
+                New here?{" "}
+                <Link to="/signup" className="text-medical-light font-semibold hover:underline">
+                  Create an account
+                </Link>
               </p>
 
               <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
-                {error && <div className="text-sm bg-medical-tint text-medical-dark px-4 py-2.5 rounded-xl border border-medical-dark/20">{error}</div>}
+                {error && (
+                  <div className="text-sm bg-medical-tint text-medical-dark px-4 py-2.5 rounded-xl border border-medical-dark/20">
+                    {error}
+                  </div>
+                )}
 
                 <Field label="Email" icon={Mail} error={errors.email?.message}>
                   <input
@@ -120,17 +147,34 @@ function Login() {
                     {...register("password", { required: "Password is required" })}
                     className="input pr-10"
                   />
-                  <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-medical-dark">
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(!showPw)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-medical-dark"
+                  >
                     {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </Field>
 
                 <div className="flex items-center justify-between text-sm">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" {...register("remember")} className="accent-medical-dark h-4 w-4 rounded" />
+                    <input
+                      type="checkbox"
+                      {...register("remember")}
+                      className="accent-medical-dark h-4 w-4 rounded"
+                    />
                     <span className="text-muted-foreground">Remember me</span>
                   </label>
-                  <button type="button" onClick={() => { setStep("forgot"); setError(""); }} className="text-medical-light font-semibold hover:underline">Forgot password?</button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep("forgot");
+                      setError("");
+                    }}
+                    className="text-medical-light font-semibold hover:underline"
+                  >
+                    Forgot password?
+                  </button>
                 </div>
 
                 <button
@@ -144,11 +188,21 @@ function Login() {
           ) : (
             <>
               <h2 className="font-display text-3xl font-bold text-medical-dark">Forgot password</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Enter your email address and we will send you a password reset link.</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Enter your email address and we will send you a password reset link.
+              </p>
 
               <form onSubmit={handleForgotSubmit} className="mt-8 space-y-4">
-                {forgotError && <div className="text-sm bg-medical-tint text-medical-dark px-4 py-2.5 rounded-xl border border-medical-dark/20">{forgotError}</div>}
-                {forgotSuccess && <div className="text-sm bg-emerald-50 text-emerald-800 px-4 py-2.5 rounded-xl border border-emerald-200">{forgotSuccess}</div>}
+                {forgotError && (
+                  <div className="text-sm bg-medical-tint text-medical-dark px-4 py-2.5 rounded-xl border border-medical-dark/20">
+                    {forgotError}
+                  </div>
+                )}
+                {forgotSuccess && (
+                  <div className="text-sm bg-emerald-50 text-emerald-800 px-4 py-2.5 rounded-xl border border-emerald-200">
+                    {forgotSuccess}
+                  </div>
+                )}
 
                 <Field label="Email Address" icon={Mail}>
                   <input
@@ -167,13 +221,18 @@ function Login() {
                   disabled={isForgotSubmitting}
                   className="ripple w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl gradient-medical text-white font-semibold shadow-[var(--shadow-glow)] hover:-translate-y-0.5 transition disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  {isForgotSubmitting ? "Sending..." : "Send Reset Email"} <ArrowRight className="h-4 w-4" />
+                  {isForgotSubmitting ? "Sending..." : "Send Reset Email"}{" "}
+                  <ArrowRight className="h-4 w-4" />
                 </button>
 
                 <div className="text-center pt-2">
                   <button
                     type="button"
-                    onClick={() => { setStep("login"); setForgotError(""); setForgotSuccess(""); }}
+                    onClick={() => {
+                      setStep("login");
+                      setForgotError("");
+                      setForgotSuccess("");
+                    }}
                     className="text-xs font-semibold text-medical-light hover:underline"
                     disabled={isForgotSubmitting}
                   >

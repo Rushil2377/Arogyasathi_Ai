@@ -1,7 +1,19 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, Phone, ArrowRight, Check, ArrowLeft, RefreshCw, ExternalLink, Eye, EyeOff } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  Phone,
+  ArrowRight,
+  Check,
+  ArrowLeft,
+  RefreshCw,
+  ExternalLink,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useState } from "react";
 import logo from "@/assets/logo.png";
@@ -16,7 +28,12 @@ export const Route = createFileRoute("/signup")({
 type Form = { name: string; email: string; phone: string; password: string; confirm: string };
 
 function Signup() {
-  const { register, handleSubmit, formState: { errors }, watch } = useForm<Form>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm<Form>();
   const [error, setError] = useState("");
   const router = useRouter();
   const pw = watch("password");
@@ -30,17 +47,20 @@ function Signup() {
   const [showConfirmPw, setShowConfirmPw] = useState(false);
 
   const onSubmit = async (data: Form) => {
-    if (data.password !== data.confirm) { setError("Passwords don't match"); return; }
+    if (data.password !== data.confirm) {
+      setError("Passwords don't match");
+      return;
+    }
     setError("");
     setIsSubmitting(true);
     try {
       const origin = window.location.origin;
       const res = await sendVerificationEmailFn({ data: { data, origin } });
-      
+
       setTempEmail(data.email);
       setTempFormData(data);
       setStep("sent");
-      
+
       if (res.devVerifyUrl) {
         setDevVerifyUrl(res.devVerifyUrl);
         toast.info("SMTP not configured or failed. Verification link generated for testing.");
@@ -82,16 +102,35 @@ function Signup() {
           <span className="font-display text-xl font-bold">ArogyaSathi AI</span>
         </Link>
         <div className="relative z-10 space-y-5">
-          <h1 className="font-display text-4xl font-bold leading-tight">Start your healthcare<br />journey today.</h1>
+          <h1 className="font-display text-4xl font-bold leading-tight">
+            Start your healthcare
+            <br />
+            journey today.
+          </h1>
           <ul className="space-y-2.5 text-white/90 text-sm">
-            {["24×7 AI health assistant", "Instant disease detection", "Plain-language report analysis", "Verified specialist consultation"].map(t => (
-              <li key={t} className="flex items-center gap-2"><Check className="h-4 w-4" /> {t}</li>
+            {[
+              "24×7 AI health assistant",
+              "Instant disease detection",
+              "Plain-language report analysis",
+              "Verified specialist consultation",
+            ].map((t) => (
+              <li key={t} className="flex items-center gap-2">
+                <Check className="h-4 w-4" /> {t}
+              </li>
             ))}
           </ul>
         </div>
-        <div className="relative z-10 text-white/70 text-xs">Your data stays on your device. Always.</div>
-        <div aria-hidden className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-        <div aria-hidden className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-medical-light/30 blur-3xl" />
+        <div className="relative z-10 text-white/70 text-xs">
+          Your data stays on your device. Always.
+        </div>
+        <div
+          aria-hidden
+          className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-white/10 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-medical-light/30 blur-3xl"
+        />
       </div>
 
       <div className="flex items-center justify-center p-6 sm:p-12 relative">
@@ -101,23 +140,50 @@ function Signup() {
         </Link>
 
         {step === "form" ? (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-md"
+          >
             <h2 className="font-display text-3xl font-bold text-medical-dark">Create account</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Already have one?{" "}
-              <Link to="/login" className="text-medical-light font-semibold hover:underline">Log in</Link>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Already have one?{" "}
+              <Link to="/login" className="text-medical-light font-semibold hover:underline">
+                Log in
+              </Link>
             </p>
 
             <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
-              {error && <div className="text-sm bg-medical-tint text-medical-dark px-4 py-2.5 rounded-xl border border-medical-dark/20">{error}</div>}
+              {error && (
+                <div className="text-sm bg-medical-tint text-medical-dark px-4 py-2.5 rounded-xl border border-medical-dark/20">
+                  {error}
+                </div>
+              )}
 
               <Field label="Full Name" icon={User} error={errors.name?.message}>
-                <input className="input" placeholder="Rohan Sharma" {...register("name", { required: "Name is required" })} disabled={isSubmitting} />
+                <input
+                  className="input"
+                  placeholder="Rohan Sharma"
+                  {...register("name", { required: "Name is required" })}
+                  disabled={isSubmitting}
+                />
               </Field>
               <Field label="Email" icon={Mail} error={errors.email?.message}>
-                <input className="input" type="email" placeholder="you@example.com" {...register("email", { required: "Email is required" })} disabled={isSubmitting} />
+                <input
+                  className="input"
+                  type="email"
+                  placeholder="you@example.com"
+                  {...register("email", { required: "Email is required" })}
+                  disabled={isSubmitting}
+                />
               </Field>
               <Field label="Phone Number" icon={Phone} error={errors.phone?.message}>
-                <input className="input" placeholder="+91 98765 43210" {...register("phone", { required: "Phone is required" })} disabled={isSubmitting} />
+                <input
+                  className="input"
+                  placeholder="+91 98765 43210"
+                  {...register("phone", { required: "Phone is required" })}
+                  disabled={isSubmitting}
+                />
               </Field>
               <Field label="Password" icon={Lock} error={errors.password?.message}>
                 <input
@@ -128,11 +194,16 @@ function Signup() {
                     required: "Password is required",
                     minLength: { value: 8, message: "Password must be at least 8 characters long" },
                     validate: {
-                      hasCapital: (v: string) => /[A-Z]/.test(v) || "Password must contain at least one uppercase letter",
-                      hasSmall: (v: string) => /[a-z]/.test(v) || "Password must contain at least one lowercase letter",
-                      hasNumber: (v: string) => /[0-9]/.test(v) || "Password must contain at least one number",
-                      hasSpecial: (v: string) => /[!@#$%^&*(),.?":{}|<>]/.test(v) || "Password must contain at least one special character",
-                    }
+                      hasCapital: (v: string) =>
+                        /[A-Z]/.test(v) || "Password must contain at least one uppercase letter",
+                      hasSmall: (v: string) =>
+                        /[a-z]/.test(v) || "Password must contain at least one lowercase letter",
+                      hasNumber: (v: string) =>
+                        /[0-9]/.test(v) || "Password must contain at least one number",
+                      hasSpecial: (v: string) =>
+                        /[!@#$%^&*(),.?":{}|<>]/.test(v) ||
+                        "Password must contain at least one special character",
+                    },
                   })}
                   disabled={isSubmitting}
                 />
@@ -149,7 +220,10 @@ function Signup() {
                   className="input pr-10"
                   type={showConfirmPw ? "text" : "password"}
                   placeholder="Repeat password"
-                  {...register("confirm", { required: "Please confirm", validate: v => v === pw || "Passwords don't match" })}
+                  {...register("confirm", {
+                    required: "Please confirm",
+                    validate: (v) => v === pw || "Passwords don't match",
+                  })}
                   disabled={isSubmitting}
                 />
                 <button
@@ -179,10 +253,17 @@ function Signup() {
             </form>
           </motion.div>
         ) : (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-md text-center"
+          >
             <div className="flex items-center gap-3 mb-6 text-left">
               <button
-                onClick={() => { setStep("form"); setError(""); }}
+                onClick={() => {
+                  setStep("form");
+                  setError("");
+                }}
                 className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition"
                 disabled={isSubmitting}
               >
@@ -190,14 +271,18 @@ function Signup() {
               </button>
               <h2 className="font-display text-3xl font-bold text-medical-dark">Verify email</h2>
             </div>
-            
+
             <div className="p-4 bg-medical-tint rounded-full text-medical-light w-16 h-16 flex items-center justify-center mx-auto mb-6">
               <Mail className="h-8 w-8 text-medical-dark" />
             </div>
 
-            <h3 className="font-display text-2xl font-bold text-medical-dark mb-3">Verification Link Sent</h3>
+            <h3 className="font-display text-2xl font-bold text-medical-dark mb-3">
+              Verification Link Sent
+            </h3>
             <p className="text-sm text-muted-foreground leading-relaxed mb-8">
-              We have sent a verification link to <span className="font-semibold text-foreground">{tempEmail}</span>. Please click on the link to verify your email and activate your account.
+              We have sent a verification link to{" "}
+              <span className="font-semibold text-foreground">{tempEmail}</span>. Please click on
+              the link to verify your email and activate your account.
             </p>
 
             {devVerifyUrl && (
@@ -206,7 +291,8 @@ function Signup() {
                   <span>🔧 Developer Mode Helper</span>
                 </h4>
                 <p className="text-xs text-amber-700/90 leading-relaxed mb-3">
-                  SMTP configuration is not set up or failed. Use this button to verify the account directly:
+                  SMTP configuration is not set up or failed. Use this button to verify the account
+                  directly:
                 </p>
                 <a
                   href={devVerifyUrl}
@@ -262,4 +348,3 @@ function Field({ label, icon: Icon, error, children }: any) {
     </div>
   );
 }
-

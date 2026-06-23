@@ -79,9 +79,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "ArogyaSathi AI — Smart Healthcare Companion" },
-      { name: "description", content: "AI-powered healthcare assistance 24×7: symptom guidance, disease detection, medical report analysis, and expert consultation for rural India." },
+      {
+        name: "description",
+        content:
+          "AI-powered healthcare assistance 24×7: symptom guidance, disease detection, medical report analysis, and expert consultation for rural India.",
+      },
       { property: "og:title", content: "ArogyaSathi AI — Smart Healthcare Companion" },
-      { property: "og:description", content: "AI-powered healthcare available 24×7 for rural and semi-urban communities." },
+      {
+        property: "og:description",
+        content: "AI-powered healthcare available 24×7 for rural and semi-urban communities.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -89,7 +96,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,

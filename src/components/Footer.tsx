@@ -14,23 +14,44 @@ export default function Footer() {
           <p className="text-sm text-muted-foreground leading-relaxed">
             AI-powered healthcare companion built for rural and semi-urban India.
           </p>
-
         </div>
         <div>
           <h4 className="font-semibold text-medical-dark mb-3 text-sm">Product</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><Link to="/ai-health-assistant" className="hover:text-medical-dark transition">AI Assistant</Link></li>
-            <li><Link to="/disease-detection" className="hover:text-medical-dark transition">Disease Detection</Link></li>
-            <li><Link to="/report-analysis" className="hover:text-medical-dark transition">Report Analysis</Link></li>
-            <li><Link to="/report-analysis" className="hover:text-medical-dark transition">Doctor Consultation</Link></li>
+            <li>
+              <Link to="/ai-health-assistant" className="hover:text-medical-dark transition">
+                AI Assistant
+              </Link>
+            </li>
+            <li>
+              <Link to="/disease-detection" className="hover:text-medical-dark transition">
+                Disease Detection
+              </Link>
+            </li>
+            <li>
+              <Link to="/report-analysis" className="hover:text-medical-dark transition">
+                Report Analysis
+              </Link>
+            </li>
+            <li>
+              <Link to="/report-analysis" className="hover:text-medical-dark transition">
+                Doctor Consultation
+              </Link>
+            </li>
           </ul>
         </div>
         <div>
           <h4 className="font-semibold text-medical-dark mb-3 text-sm">Contact</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> dipenpatel@gmail.com</li>
-            <li className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> +91 7567304075</li>
-            <li className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> Vadodara, India</li>
+            <li className="flex items-center gap-2">
+              <Mail className="h-3.5 w-3.5" /> arogyasathi46@gmail.com
+            </li>
+            <li className="flex items-center gap-2">
+              <Phone className="h-3.5 w-3.5" /> +91 7567304075
+            </li>
+            <li className="flex items-center gap-2">
+              <MapPin className="h-3.5 w-3.5" /> Vadodara, India
+            </li>
           </ul>
         </div>
       </div>

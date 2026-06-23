@@ -20,7 +20,7 @@ export const sendVerificationEmailFn = createServerFn({ method: "POST" })
     verificationStore.set(token, { data: formData, expiresAt });
 
     const verificationLink = `${origin}/verify-email?token=${token}`;
-    
+
     // Log the link to the console for testing purposes
     console.log(`\n--- DEVELOPER VERIFICATION LINK FOR ${email} ---`);
     console.log(verificationLink);
@@ -32,10 +32,10 @@ export const sendVerificationEmailFn = createServerFn({ method: "POST" })
 
     if (!smtpUser || !smtpPass) {
       // Return dev link immediately if SMTP configuration is missing
-      return { 
-        success: false, 
-        devVerifyUrl: verificationLink, 
-        error: "SMTP credentials not configured in .env file." 
+      return {
+        success: false,
+        devVerifyUrl: verificationLink,
+        error: "SMTP credentials not configured in .env file.",
       };
     }
 
@@ -79,12 +79,13 @@ export const sendVerificationEmailFn = createServerFn({ method: "POST" })
       return { success: true };
     } catch (mailError: any) {
       console.error("Nodemailer verification link error:", mailError);
-      return { 
-        success: false, 
+      return {
+        success: false,
         devVerifyUrl: verificationLink,
-        error: mailError.code === "EAUTH" 
-          ? "SMTP authentication failed. Google rejected the credentials." 
-          : mailError.message || "Failed to send email." 
+        error:
+          mailError.code === "EAUTH"
+            ? "SMTP authentication failed. Google rejected the credentials."
+            : mailError.message || "Failed to send email.",
       };
     }
   });

@@ -63,7 +63,6 @@ export default function PageShell({
         className="pt-24"
       >
         {children}
-        
       </motion.main>
       {showFooter && <Footer />}
 

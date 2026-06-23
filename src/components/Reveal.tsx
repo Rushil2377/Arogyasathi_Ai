@@ -1,4 +1,11 @@
-import { motion, type Variants, useMotionValue, useTransform, animate, useInView } from "framer-motion";
+import {
+  motion,
+  type Variants,
+  useMotionValue,
+  useTransform,
+  animate,
+  useInView,
+} from "framer-motion";
 import { useEffect, useRef, type ReactNode } from "react";
 
 const v: Variants = {
@@ -29,7 +36,15 @@ export default function Reveal({
   );
 }
 
-export function Counter({ to, suffix = "", duration = 2 }: { to: number; suffix?: string; duration?: number }) {
+export function Counter({
+  to,
+  suffix = "",
+  duration = 2,
+}: {
+  to: number;
+  suffix?: string;
+  duration?: number;
+}) {
   const ref = useRef<HTMLSpanElement>(null);
   const mv = useMotionValue(0);
   const rounded = useTransform(mv, (v) => Math.round(v).toLocaleString());

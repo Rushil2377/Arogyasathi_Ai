@@ -58,8 +58,8 @@ function VerifyEmail() {
             data: {
               name: formData.name,
               phone: formData.phone,
-            }
-          }
+            },
+          },
         });
 
         if (signUpError) {
@@ -67,14 +67,15 @@ function VerifyEmail() {
         }
 
         setStatus("success");
-        setMessage("Email verified successfully! Creating your profile and redirecting you to dashboard...");
+        setMessage(
+          "Email verified successfully! Creating your profile and redirecting you to dashboard...",
+        );
         toast.success("Account created successfully!");
 
         // Redirect to homepage after 3 seconds
         setTimeout(() => {
           router.navigate({ to: "/" });
         }, 3000);
-
       } catch (err: any) {
         console.error("Verification failed:", err);
         setStatus("error");
@@ -95,14 +96,27 @@ function VerifyEmail() {
           <span className="font-display text-xl font-bold">ArogyaSathi AI</span>
         </Link>
         <div className="relative z-10">
-          <h1 className="font-display text-4xl font-bold leading-tight">Verification in progress.<br />Setting up your portal.</h1>
-          <p className="mt-3 text-white/85 max-w-md">We secure your patient account to keep all health records, chats, and detections private on your device And dont reply.</p>
+          <h1 className="font-display text-4xl font-bold leading-tight">
+            Verification in progress.
+            <br />
+            Setting up your portal.
+          </h1>
+          <p className="mt-3 text-white/85 max-w-md">
+            We secure your patient account to keep all health records, chats, and detections private
+            on your device And dont reply.
+          </p>
         </div>
         <div className="relative z-10 flex items-center gap-2 text-white/80 text-sm">
           <Heart className="h-4 w-4" /> Secure Health Data Protection
         </div>
-        <div aria-hidden className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-        <div aria-hidden className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-medical-light/30 blur-3xl" />
+        <div
+          aria-hidden
+          className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-white/10 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-medical-light/30 blur-3xl"
+        />
       </div>
 
       {/* Main card section */}

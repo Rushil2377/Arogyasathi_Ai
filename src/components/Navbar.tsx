@@ -23,7 +23,9 @@ export default function Navbar() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session?.user) {
         const { data: profile } = await supabase
           .from("profiles")
@@ -41,7 +43,9 @@ export default function Navbar() {
 
     fetchUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         const { data: profile } = await supabase
           .from("profiles")
@@ -85,7 +89,9 @@ export default function Navbar() {
           </div>
           <div className="flex flex-col leading-none">
             <span className="font-display text-lg font-bold text-gradient">ArogyaSathi</span>
-            <span className="text-[10px] tracking-[0.2em] text-medical-dark/70 font-semibold">AI HEALTH</span>
+            <span className="text-[10px] tracking-[0.2em] text-medical-dark/70 font-semibold">
+              AI HEALTH
+            </span>
           </div>
         </Link>
 
@@ -173,15 +179,26 @@ export default function Navbar() {
           ))}
           <div className="flex gap-2 pt-2 border-t border-border">
             {user ? (
-              <button onClick={logout} className="flex-1 py-2 text-sm font-semibold text-medical-dark border border-medical-dark/20 rounded-xl">
+              <button
+                onClick={logout}
+                className="flex-1 py-2 text-sm font-semibold text-medical-dark border border-medical-dark/20 rounded-xl"
+              >
                 Log out ({user.name || user.email})
               </button>
             ) : (
               <>
-                <Link to="/login" onClick={() => setOpen(false)} className="flex-1 text-center py-2 text-sm font-semibold text-medical-dark border border-medical-dark/20 rounded-xl">
+                <Link
+                  to="/login"
+                  onClick={() => setOpen(false)}
+                  className="flex-1 text-center py-2 text-sm font-semibold text-medical-dark border border-medical-dark/20 rounded-xl"
+                >
                   Login
                 </Link>
-                <Link to="/signup" onClick={() => setOpen(false)} className="flex-1 text-center py-2 text-sm font-semibold text-white gradient-medical rounded-xl">
+                <Link
+                  to="/signup"
+                  onClick={() => setOpen(false)}
+                  className="flex-1 text-center py-2 text-sm font-semibold text-white gradient-medical rounded-xl"
+                >
                   Sign Up
                 </Link>
               </>
