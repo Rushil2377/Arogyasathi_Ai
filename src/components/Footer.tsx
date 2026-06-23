@@ -5,7 +5,7 @@ import logo from "@/assets/logo.png";
 export default function Footer() {
   return (
     <footer className="relative mt-24 border-t border-border bg-medical-tint/40">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-14 grid gap-10 md:grid-cols-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-14 grid gap-10 md:grid-cols-3">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <img src={logo} alt="" width={32} height={32} className="h-8 w-8" />
@@ -14,9 +14,7 @@ export default function Footer() {
           <p className="text-sm text-muted-foreground leading-relaxed">
             AI-powered healthcare companion built for rural and semi-urban India.
           </p>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            Made with <Heart className="h-3 w-3 fill-medical-light text-medical-light" /> for Biothon
-          </div>
+
         </div>
         <div>
           <h4 className="font-semibold text-medical-dark mb-3 text-sm">Product</h4>
@@ -25,15 +23,6 @@ export default function Footer() {
             <li><Link to="/disease-detection" className="hover:text-medical-dark transition">Disease Detection</Link></li>
             <li><Link to="/report-analysis" className="hover:text-medical-dark transition">Report Analysis</Link></li>
             <li><Link to="/report-analysis" className="hover:text-medical-dark transition">Doctor Consultation</Link></li>
-          </ul>
-        </div>
-        <div>
-          <h4 className="font-semibold text-medical-dark mb-3 text-sm">Company</h4>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><a href="#about" className="hover:text-medical-dark transition">About</a></li>
-            <li><a href="#features" className="hover:text-medical-dark transition">Features</a></li>
-            <li><a href="#" className="hover:text-medical-dark transition">Privacy Policy</a></li>
-            <li><a href="#" className="hover:text-medical-dark transition">Terms of Service</a></li>
           </ul>
         </div>
         <div>
