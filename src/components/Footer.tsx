@@ -16,7 +16,7 @@ export default function Footer() {
           </p>
         </div>
         <div>
-          <h4 className="font-semibold text-medical-dark mb-3 text-sm">Product</h4>
+          <h4 className="font-semibold text-medical-dark mb-3 text-sm">Features</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>
               <Link to="/ai-health-assistant" className="hover:text-medical-dark transition">
@@ -35,7 +35,7 @@ export default function Footer() {
             </li>
             <li>
               <Link to="/report-analysis" className="hover:text-medical-dark transition">
-                Doctor Consultation
+                Nearby Hospitals
               </Link>
             </li>
           </ul>
