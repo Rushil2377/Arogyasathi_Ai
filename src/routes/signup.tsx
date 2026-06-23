@@ -2,7 +2,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, Phone, ArrowRight, Check } from "lucide-react";
-import { storage, KEYS } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 import { useState } from "react";
 import logo from "@/assets/logo.png";
 
@@ -19,13 +19,23 @@ function Signup() {
   const router = useRouter();
   const pw = watch("password");
 
-  const onSubmit = (data: Form) => {
+  const onSubmit = async (data: Form) => {
     if (data.password !== data.confirm) { setError("Passwords don't match"); return; }
-    const users = storage.get<any[]>(KEYS.users, []);
-    if (users.find((u) => u.email === data.email)) { setError("Email already registered"); return; }
-    users.push({ name: data.name, email: data.email, phone: data.phone, password: data.password });
-    storage.set(KEYS.users, users);
-    storage.set(KEYS.user, { name: data.name, email: data.email });
+    setError("");
+    const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          name: data.name,
+          phone: data.phone,
+        }
+      }
+    });
+    if (signUpError) {
+      setError(signUpError.message);
+      return;
+    }
     router.navigate({ to: "/" });
   };
 

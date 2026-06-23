@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText, Upload, FileCheck, AlertTriangle, TrendingUp, Stethoscope,
@@ -8,6 +8,7 @@ import {
 import PageShell from "@/components/PageShell";
 import Reveal from "@/components/Reveal";
 import { storage, KEYS } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/report-analysis")({
   head: () => ({ meta: [{ title: "Report Analysis & Expert Consultation • ArogyaSathi AI" }] }),
@@ -87,24 +88,93 @@ const statusBadge: Record<string, string> = {
 };
 
 function ReportsAndDoctors() {
-  const [reports, setReports] = useState<ReportRecord[]>(() => storage.get<ReportRecord[]>(KEYS.reports, []));
+  const [reports, setReports] = useState<ReportRecord[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const initReports = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const uid = session.user.id;
+        setUserId(uid);
+
+        const { data: dbReports } = await supabase
+          .from("report_analyses")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (dbReports) {
+          setReports(
+            dbReports.map((r: any) => ({
+              id: r.id,
+              name: r.file_name,
+              time: new Date(r.created_at).getTime(),
+              summary: r.summary,
+              findings: r.findings,
+              riskLevel: r.risk_level,
+              recommendations: r.recommendations,
+            }))
+          );
+        }
+      } else {
+        setReports(storage.get<ReportRecord[]>(KEYS.reports, []));
+      }
+    };
+    initReports();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) {
+      storage.set(KEYS.reports, reports);
+    }
+  }, [reports, userId]);
 
   const handleFile = (file: File) => {
     setAnalyzing(true);
-    setTimeout(() => {
+    setTimeout(async () => {
       const tmpl = sampleReports[reports.length % sampleReports.length];
       const rec: ReportRecord = { id: crypto.randomUUID(), name: file.name, time: Date.now(), ...tmpl };
-      const next = [rec, ...reports].slice(0, 15);
-      setReports(next);
-      storage.set(KEYS.reports, next);
+      
+      setReports((prev) => {
+        const next = [rec, ...prev].slice(0, 15);
+        return next;
+      });
+
+      if (userId) {
+        try {
+          await supabase.from("report_analyses").insert({
+            id: rec.id,
+            user_id: userId,
+            file_name: rec.name,
+            summary: rec.summary,
+            findings: rec.findings,
+            risk_level: rec.riskLevel,
+            recommendations: rec.recommendations,
+          });
+        } catch (err) {
+          console.error("Error saving report:", err);
+        }
+      }
+      
       setAnalyzing(false);
     }, 1600);
   };
 
-  const clearAll = () => { setReports([]); storage.remove(KEYS.reports); };
+  const clearAll = async () => {
+    setReports([]);
+    if (userId) {
+      try {
+        await supabase.from("report_analyses").delete().eq("user_id", userId);
+      } catch (err) {
+        console.error("Error clearing reports:", err);
+      }
+    } else {
+      storage.remove(KEYS.reports);
+    }
+  };
 
   const consolidated = useMemo(() => {
     if (reports.length < 2) return null;

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Mic, Bot, User, Sparkles, Globe, Trash2 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { storage, KEYS } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ai-health-assistant")({
   head: () => ({ meta: [{ title: "AI Health Assistant • ArogyaSathi AI" }] }),
@@ -44,26 +45,134 @@ const mockReply = (msg: string, lang: string): string => {
 };
 
 function Assistant() {
-  const [messages, setMessages] = useState<Msg[]>(() => storage.get<Msg[]>(KEYS.chat, []));
+  const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [lang, setLang] = useState("en");
   const [typing, setTyping] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { storage.set(KEYS.chat, messages); }, [messages]);
+  useEffect(() => {
+    const initChat = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const uid = session.user.id;
+        setUserId(uid);
+
+        // Fetch active conversation
+        const { data: conv } = await supabase
+          .from("conversations")
+          .select("id")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (conv) {
+          setActiveConvId(conv.id);
+          const { data: dbMsgs } = await supabase
+            .from("messages")
+            .select("id, sender, content, created_at")
+            .eq("conversation_id", conv.id)
+            .order("created_at", { ascending: true });
+
+          if (dbMsgs) {
+            setMessages(
+              dbMsgs.map((m: any) => ({
+                id: m.id,
+                role: m.sender,
+                text: m.content,
+                time: new Date(m.created_at).getTime(),
+              }))
+            );
+          }
+        }
+      } else {
+        // Guest mode
+        setMessages(storage.get<Msg[]>(KEYS.chat, []));
+      }
+    };
+    initChat();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) {
+      storage.set(KEYS.chat, messages);
+    }
+  }, [messages, userId]);
+
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9, behavior: "smooth" }); }, [messages, typing]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     if (!text.trim()) return;
-    const user: Msg = { id: crypto.randomUUID(), role: "user", text, time: Date.now() };
-    setMessages((m) => [...m, user]);
+    const userMsgId = crypto.randomUUID();
+    const userMsg: Msg = { id: userMsgId, role: "user", text, time: Date.now() };
+    setMessages((m) => [...m, userMsg]);
     setInput("");
     setTyping(true);
-    setTimeout(() => {
-      const reply: Msg = { id: crypto.randomUUID(), role: "assistant", text: mockReply(text, lang), time: Date.now() };
+
+    let currentConvId = activeConvId;
+
+    if (userId) {
+      try {
+        if (!currentConvId) {
+          const { data: conv } = await supabase
+            .from("conversations")
+            .insert({ user_id: userId, title: text.slice(0, 30) })
+            .select("id")
+            .single();
+          if (conv) {
+            currentConvId = conv.id;
+            setActiveConvId(conv.id);
+          }
+        }
+
+        if (currentConvId) {
+          await supabase.from("messages").insert({
+            id: userMsgId,
+            conversation_id: currentConvId,
+            sender: "user",
+            content: text,
+          });
+        }
+      } catch (err) {
+        console.error("Error saving message:", err);
+      }
+    }
+
+    setTimeout(async () => {
+      const replyText = mockReply(text, lang);
+      const replyMsgId = crypto.randomUUID();
+      const reply: Msg = { id: replyMsgId, role: "assistant", text: replyText, time: Date.now() };
       setMessages((m) => [...m, reply]);
       setTyping(false);
+
+      if (userId && currentConvId) {
+        try {
+          await supabase.from("messages").insert({
+            id: replyMsgId,
+            conversation_id: currentConvId,
+            sender: "assistant",
+            content: replyText,
+          });
+        } catch (err) {
+          console.error("Error saving reply:", err);
+        }
+      }
     }, 900 + Math.random() * 700);
+  };
+
+  const clearChat = async () => {
+    setMessages([]);
+    if (userId) {
+      if (activeConvId) {
+        await supabase.from("conversations").delete().eq("id", activeConvId);
+        setActiveConvId(null);
+      }
+    } else {
+      storage.remove(KEYS.chat);
+    }
   };
 
   return (
@@ -92,7 +201,7 @@ function Assistant() {
                   </button>
                 ))}
               </div>
-              <button onClick={() => { setMessages([]); storage.remove(KEYS.chat); }} className="h-9 w-9 rounded-full glass flex items-center justify-center text-medical-dark hover:bg-white" aria-label="Clear chat">
+              <button onClick={clearChat} className="h-9 w-9 rounded-full glass flex items-center justify-center text-medical-dark hover:bg-white" aria-label="Clear chat">
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>

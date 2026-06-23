@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, ImageIcon, ScanLine, AlertCircle, Check, Trash2, Clock, ShieldCheck } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import Reveal from "@/components/Reveal";
 import { storage, KEYS } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/disease-detection")({
   head: () => ({ meta: [{ title: "Disease Detection • ArogyaSathi AI" }] }),
@@ -32,9 +33,48 @@ function Detection() {
   const [preview, setPreview] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<Detection | null>(null);
-  const [history, setHistory] = useState<Detection[]>(() => storage.get<Detection[]>(KEYS.detections, []));
+  const [history, setHistory] = useState<Detection[]>([]);
   const [dragOver, setDragOver] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const initHistory = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const uid = session.user.id;
+        setUserId(uid);
+
+        const { data: dbDets } = await supabase
+          .from("disease_detections")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (dbDets) {
+          setHistory(
+            dbDets.map((d: any) => ({
+              id: d.id,
+              image: d.image_data,
+              disease: d.predicted_condition,
+              confidence: Number(d.accuracy_rate),
+              symptoms: d.symptoms,
+              precautions: d.recommendations,
+              time: new Date(d.created_at).getTime(),
+            }))
+          );
+        }
+      } else {
+        setHistory(storage.get<Detection[]>(KEYS.detections, []));
+      }
+    };
+    initHistory();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) {
+      storage.set(KEYS.detections, history);
+    }
+  }, [history, userId]);
 
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) return;
@@ -44,20 +84,50 @@ function Detection() {
       setPreview(dataUrl);
       setResult(null);
       setAnalyzing(true);
-      setTimeout(() => {
+      setTimeout(async () => {
         const pick = mockResults[Math.floor(Math.random() * mockResults.length)];
         const det: Detection = { id: crypto.randomUUID(), image: dataUrl, time: Date.now(), ...pick };
         setResult(det);
-        const next = [det, ...history].slice(0, 20);
-        setHistory(next);
-        storage.set(KEYS.detections, next);
+        
+        setHistory((prev) => {
+          const next = [det, ...prev].slice(0, 20);
+          return next;
+        });
+
+        if (userId) {
+          try {
+            await supabase.from("disease_detections").insert({
+              id: det.id,
+              user_id: userId,
+              symptoms: det.symptoms,
+              predicted_condition: det.disease,
+              accuracy_rate: det.confidence,
+              recommendations: det.precautions,
+              image_data: det.image,
+            });
+          } catch (err) {
+            console.error("Error saving detection:", err);
+          }
+        }
+        
         setAnalyzing(false);
       }, 1800);
     };
     reader.readAsDataURL(file);
-  }, [history]);
+  }, [userId]);
 
-  const clearHistory = () => { setHistory([]); storage.remove(KEYS.detections); };
+  const clearHistory = async () => {
+    setHistory([]);
+    if (userId) {
+      try {
+        await supabase.from("disease_detections").delete().eq("user_id", userId);
+      } catch (err) {
+        console.error("Error clearing detections:", err);
+      }
+    } else {
+      storage.remove(KEYS.detections);
+    }
+  };
 
   return (
     <PageShell>

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Heart } from "lucide-react";
-import { storage, KEYS } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 import logo from "@/assets/logo.png";
 
 export const Route = createFileRoute("/login")({
@@ -19,14 +19,16 @@ function Login() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const onSubmit = (data: Form) => {
-    const users = storage.get<any[]>(KEYS.users, []);
-    const found = users.find((u) => u.email === data.email && u.password === data.password);
-    if (!found) {
-      setError("Invalid email or password. Try signing up first.");
+  const onSubmit = async (data: Form) => {
+    setError("");
+    const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
+    if (signInError) {
+      setError(signInError.message);
       return;
     }
-    storage.set(KEYS.user, { name: found.name, email: found.email });
     router.navigate({ to: "/" });
   };
 

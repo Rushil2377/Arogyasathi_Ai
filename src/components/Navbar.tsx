@@ -2,7 +2,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Menu, X, Activity, LogOut } from "lucide-react";
-import { storage, KEYS } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 import logo from "@/assets/logo.png";
 
 const navItems = [
@@ -22,11 +22,48 @@ export default function Navbar() {
   useMotionValueEvent(scrollY, "change", (v) => setScrolled(v > 24));
 
   useEffect(() => {
-    setUser(storage.get(KEYS.user, null as any));
-  }, [router.state.location.pathname]);
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("name, email")
+          .eq("id", session.user.id)
+          .single();
+        setUser({
+          name: profile?.name || session.user.user_metadata?.name || session.user.email,
+          email: session.user.email,
+        });
+      } else {
+        setUser(null);
+      }
+    };
 
-  const logout = () => {
-    storage.remove(KEYS.user);
+    fetchUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("name, email")
+          .eq("id", session.user.id)
+          .single();
+        setUser({
+          name: profile?.name || session.user.user_metadata?.name || session.user.email,
+          email: session.user.email,
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     router.navigate({ to: "/" });
   };
