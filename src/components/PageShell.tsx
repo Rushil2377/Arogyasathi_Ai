@@ -5,6 +5,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import logo from "@/assets/logo.png";
 import { Link } from "@tanstack/react-router";
+import ParticleBackground from "./ParticleBackground";
 
 export default function PageShell({
   children,
@@ -27,6 +28,9 @@ export default function PageShell({
 
   return (
     <div className="min-h-screen relative overflow-x-hidden bg-background text-foreground">
+      {/* Neural particle network background effect */}
+      <ParticleBackground />
+
       {/* Scroll progress */}
       <motion.div
         style={{ scaleX }}
@@ -50,7 +54,7 @@ export default function PageShell({
       )}
 
       {/* Ambient gradient blobs */}
-      <div aria-hidden className="fixed -z-10 inset-0 overflow-hidden pointer-events-none">
+      <div aria-hidden className="fixed -z-20 inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-medical-light/20 blur-3xl" />
         <div className="absolute top-1/2 -left-40 h-[400px] w-[400px] rounded-full bg-medical-dark/10 blur-3xl" />
       </div>
@@ -60,11 +64,11 @@ export default function PageShell({
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="pt-24"
+        className="pt-24 relative z-10"
       >
         {children}
       </motion.main>
-      {showFooter && <Footer />}
+      {showFooter && <div className="relative z-10"><Footer /></div>}
 
       {/* Floating support */}
       <Link

@@ -224,7 +224,7 @@ function Home() {
               </h3>
               <ul className="space-y-3 text-sm">
                 {[
-                  "Travel of 50+ km to reach a specialist",
+                  "Travel of 20+ km to reach a specialist",
                   "1 doctor per 1,500 people in rural areas",
                   "Lab reports written in inaccessible jargon",
                   "Critical diagnosis delayed by weeks",
