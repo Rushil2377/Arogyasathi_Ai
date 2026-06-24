@@ -318,9 +318,25 @@ Recommendations: ${recommendationsText}`;
 
   useEffect(() => {
     const initDefaultLocation = async () => {
-      const defaultLat = 23.0225;
-      const defaultLon = 72.5714;
-      setUserLocation({ lat: defaultLat, lon: defaultLon, name: "Ahmedabad, Gujarat" });
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setUserLocation({ lat: latitude, lon: longitude, name: "Current Location" });
+          },
+          (error) => {
+            console.warn("Default geolocation error, falling back to default:", error);
+            const defaultLat = 23.0225;
+            const defaultLon = 72.5714;
+            setUserLocation({ lat: defaultLat, lon: defaultLon, name: "Ahmedabad, Gujarat" });
+          },
+          { enableHighAccuracy: false, timeout: 5000 }
+        );
+      } else {
+        const defaultLat = 23.0225;
+        const defaultLon = 72.5714;
+        setUserLocation({ lat: defaultLat, lon: defaultLon, name: "Ahmedabad, Gujarat" });
+      }
     };
     initDefaultLocation();
   }, []);
