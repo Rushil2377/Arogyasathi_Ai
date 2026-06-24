@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Loader2, AlertTriangle } from "lucide-react";
 
@@ -86,6 +87,7 @@ interface HospitalMapProps {
 declare global {
   interface Window {
     initGoogleMapsCallback?: () => void;
+    google?: any;
   }
 }
 
