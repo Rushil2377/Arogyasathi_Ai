@@ -5,6 +5,7 @@ import { Send, Mic, Bot, User, Sparkles, Globe, Trash2 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { storage, KEYS } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
+import { askArogyaSathi } from "@/lib/gemini";
 
 type SearchParams = {
   reportText?: string;
@@ -57,39 +58,7 @@ const prompts: Record<string, string[]> = {
   ],
 };
 
-const mockReply = (msg: string, lang: string): string => {
-  const m = msg.toLowerCase();
-  const greet = lang === "hi" ? "नमस्ते! " : lang === "gu" ? "નમસ્તે! " : "Hi there! ";
-
-  if (/fever|बुखार|તાવ/.test(m)) {
-    return (
-      greet +
-      "A mild fever is often viral. Recommendations:\n\n• Stay hydrated — 8–10 glasses of water\n• Rest for 24–48 hours\n• Paracetamol 500mg every 6 hours if temperature > 100°F\n• Light meals (khichdi, soup, fruits)\n\n⚠️ See a doctor if: fever lasts > 3 days, rash appears, severe headache, or breathing difficulty."
-    );
-  }
-  if (/diabetes|मधुमेह|ડાયાબિટીસ/.test(m)) {
-    return (
-      greet +
-      "For diabetes management:\n\n**Avoid**: sugar, white rice, sweets, fried foods, fruit juices\n**Prefer**: whole grains, leafy vegetables, lentils, nuts, low-GI fruits (apple, pear)\n**Lifestyle**: 30 min walk daily, monitor blood sugar weekly\n\nA dietician consult is strongly recommended."
-    );
-  }
-  if (/blood pressure|रक्तचाप/.test(m)) {
-    return (
-      greet +
-      "High blood pressure is often silent. Common signs:\n\n• Headaches (especially morning)\n• Dizziness\n• Blurred vision\n• Nosebleeds\n• Chest discomfort\n\nGet a BP check every 3 months after age 30. Reduce salt, exercise daily."
-    );
-  }
-  if (/dengue|डेंगू|ડેંગ્યુ/.test(m)) {
-    return (
-      greet +
-      "Dengue typically shows:\n\n• High fever (104°F+)\n• Severe headache, eye pain\n• Joint and muscle pain\n• Rash 2–5 days after fever\n• Mild bleeding (gums, nose)\n\n🚨 Get tested (NS1/IgM) if symptoms persist > 2 days. Avoid aspirin/ibuprofen."
-    );
-  }
-  return (
-    greet +
-    "I understand. Based on what you shared, I'd recommend monitoring your symptoms for 24 hours. If they worsen or you develop high fever, severe pain, or breathing difficulty, please consult a doctor immediately. Would you like me to help you find a specialist nearby?"
-  );
-};
+// Gemini-powered responses — mockReply has been replaced by askArogyaSathi
 
 function Assistant() {
   const { reportText } = Route.useSearch();
@@ -101,6 +70,13 @@ function Assistant() {
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const initialSent = useRef(false);
+
+  // Build Gemini-compatible history from current messages (for multi-turn context)
+  const buildHistory = (msgs: Msg[]) =>
+    msgs.map((m) => ({
+      role: (m.role === "assistant" ? "model" : "user") as "user" | "model",
+      text: m.text,
+    }));
 
   useEffect(() => {
     if (reportText && !initialSent.current && userId) {
@@ -208,29 +184,31 @@ function Assistant() {
       }
     }
 
-    setTimeout(
-      async () => {
-        const replyText = mockReply(text, lang);
-        const replyMsgId = crypto.randomUUID();
-        const reply: Msg = { id: replyMsgId, role: "assistant", text: replyText, time: Date.now() };
-        setMessages((m) => [...m, reply]);
-        setTyping(false);
+    // Call the real ArogyaSathi (Gemini) API
+    try {
+      const history = buildHistory(messages);
+      const { text: replyText } = await askArogyaSathi(text, lang, history);
+      const replyMsgId = crypto.randomUUID();
+      const reply: Msg = { id: replyMsgId, role: "assistant", text: replyText, time: Date.now() };
+      setMessages((m) => [...m, reply]);
 
-        if (userId && currentConvId) {
-          try {
-            await supabase.from("messages").insert({
-              id: replyMsgId,
-              conversation_id: currentConvId,
-              sender: "assistant",
-              content: replyText,
-            });
-          } catch (err) {
-            console.error("Error saving reply:", err);
-          }
+      if (userId && currentConvId) {
+        try {
+          await supabase.from("messages").insert({
+            id: replyMsgId,
+            conversation_id: currentConvId,
+            sender: "assistant",
+            content: replyText,
+          });
+        } catch (err) {
+          console.error("Error saving reply:", err);
         }
-      },
-      900 + Math.random() * 700,
-    );
+      }
+    } catch (err) {
+      console.error("Error getting AI response:", err);
+    } finally {
+      setTyping(false);
+    }
   };
 
   const clearChat = async () => {
@@ -257,11 +235,11 @@ function Assistant() {
               </div>
               <div>
                 <h1 className="font-display text-2xl font-bold text-medical-dark">
-                  AI Health Assistant
+                  ArogyaSathi
                 </h1>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" /> Online •
-                  Multilingual
+                  EN | हिन्दी | ગુજ
                 </div>
               </div>
             </div>
