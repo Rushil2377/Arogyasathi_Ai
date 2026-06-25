@@ -19,7 +19,7 @@ import Reveal from "@/components/Reveal";
 import { storage, KEYS } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import { predictSkinDisease, checkBackendHealth } from "@/lib/skinDetection";
-import { explainSkinDisease, validateSkinImage } from "@/lib/gemini";
+import { explainSkinDisease, validateSkinImage, refineSkinPrediction } from "@/lib/gemini";
 
 export const Route = createFileRoute("/disease-detection")({
   beforeLoad: async () => {
@@ -142,7 +142,7 @@ function FormatExplanation({ text }: { text: string }) {
     <div className="space-y-4 text-base sm:text-lg text-medical-dark/95 leading-relaxed text-left">
       {lines.map((line, idx) => {
         const trimmed = line.trim();
-        
+
         // Header 3 (### Heading)
         if (trimmed.startsWith('###')) {
           return (
@@ -151,7 +151,7 @@ function FormatExplanation({ text }: { text: string }) {
             </h4>
           );
         }
-        
+
         // Header 2 (## Heading)
         if (trimmed.startsWith('##')) {
           return (
@@ -245,6 +245,7 @@ function Detection() {
   const [userId, setUserId] = useState<string | null>(null);
   const [lang, setLang] = useState("en");
   const [backendDown, setBackendDown] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Check health of FastAPI backend on mount
@@ -313,12 +314,13 @@ function Detection() {
         setExplaining(true);
         try {
           const res = result.disease === "Inconclusive Result"
-            ? { text: lang === "hi" 
+            ? {
+              text: lang === "hi"
                 ? "यह स्क्रीनिंग किसी विशेष त्वचा रोग की पहचान नहीं कर पाती है।\n\n### संभावित कारण\n1. खराब रोशनी या कैमरे का धुंधलापन।\n2. त्वचा के पैच पर कम कंट्रास्ट होना।\n\n### अगले कदम\n* कृपया एक अच्छी रोशनी वाली जगह पर त्वचा की स्पष्ट और केंद्रित तस्वीर फिर से लें।\n* यदि लक्षण बने रहते हैं या बिगड़ते हैं, तो कृपया व्यक्तिगत रूप से त्वचा विशेषज्ञ (डर्मेटोलॉजिस्ट) से संपर्क करें।"
                 : lang === "gu"
-                ? "આ સ્ક્રિનિંગ કોઈ ચોક્કસ ત્વચા રોગની ઓળખ કરી શક્યું નથી.\n\n### સંભવિત કારણો\n1. નબળી રોશની અથવા કેમેરાની અસ્પષ્ટતા.\n2. ત્વચા પર ઓછું વિરોધાભાસ હોવું.\n\n### આગલા પગલાં\n* કૃપા કરીને સારી રોશનીવાળી જગ્યાએ ત્વચાની સ્પષ્ટ અને કેન્દ્રિત છબી ફરીથી લો.\n* જો લક્ષણો ચાલુ રહે અથવા વધુ બગડે, તો કૃપા કરીને વ્યક્તિગત રીતે ત્વચા નિષ્ણાત (ડર્મેટોલોજિસ્ટ) ની મુલાકાત લો."
-                : "The AI screening was unable to identify a specific skin condition with high confidence.\n\n### Potential Causes\n1. **Poor Lighting or Focus**: The photograph may be slightly blurry, out of focus, or taken in low light.\n2. **Low Contrast**: The lesion might not stand out clearly from the surrounding skin.\n3. **Atypical Presentation**: The symptom pattern may not match the diagnostic features in our dataset.\n\n### Recommended Actions\n* **Re-take the photograph** in bright, indirect natural light and ensure it is fully in focus.\n* **Avoid background clutter** or shadows.\n* **Consult a doctor**: If the skin patch continues to itch, hurt, or evolve, schedule an appointment with a certified dermatologist."
-              }
+                  ? "આ સ્ક્રિનિંગ કોઈ ચોક્કસ ત્વચા રોગની ઓળખ કરી શક્યું નથી.\n\n### સંભવિત કારણો\n1. નબળી રોશની અથવા કેમેરાની અસ્પષ્ટતા.\n2. ત્વચા પર ઓછું વિરોધાભાસ હોવું.\n\n### આગલા પગલાં\n* કૃપા કરીને સારી રોશનીવાળી જગ્યાએ ત્વચાની સ્પષ્ટ અને કેન્દ્રિત છબી ફરીથી લો.\n* જો લક્ષણો ચાલુ રહે અથવા વધુ બગડે, તો કૃપા કરીને વ્યક્તિગત રીતે ત્વચા નિષ્ણાત (ડર્મેટોલોજિસ્ટ) ની મુલાકાત લો."
+                  : "The AI screening was unable to identify a specific skin condition with high confidence.\n\n### Potential Causes\n1. **Poor Lighting or Focus**: The photograph may be slightly blurry, out of focus, or taken in low light.\n2. **Low Contrast**: The lesion might not stand out clearly from the surrounding skin.\n3. **Atypical Presentation**: The symptom pattern may not match the diagnostic features in our dataset.\n\n### Recommended Actions\n* **Re-take the photograph** in bright, indirect natural light and ensure it is fully in focus.\n* **Avoid background clutter** or shadows.\n* **Consult a doctor**: If the skin patch continues to itch, hurt, or evolve, schedule an appointment with a certified dermatologist."
+            }
             : await explainSkinDisease(result.disease, result.confidence, lang);
           const updatedResult = { ...result, explanation: res.text };
           setResult(updatedResult);
@@ -349,6 +351,7 @@ function Detection() {
   const handleFile = useCallback(
     async (file: File) => {
       if (!file.type.startsWith("image/")) return;
+      setErrorMsg(null);
 
       const reader = new FileReader();
       reader.onload = async () => {
@@ -367,7 +370,7 @@ function Detection() {
           if (validationResult === "INVALID") {
             setAnalyzing(false);
             setPreview(null);
-            alert("Invalid Image: The uploaded photograph does not appear to be a skin patch. Please upload a valid skin image showing symptoms.");
+            setErrorMsg("The uploaded photograph does not appear to be a skin patch or lesion. Please upload a clear close-up photo of the affected skin area showing symptoms.");
             return;
           }
 
@@ -376,6 +379,23 @@ function Detection() {
           predictedDisease = pred.disease;
           confidenceScore = pred.confidence;
           probabilities = pred.allProbabilities;
+
+          // Refine prediction using Gemini Vision if available
+          try {
+            const refined = await refineSkinPrediction(dataUrl, predictedDisease, probabilities);
+            if (refined && refined !== predictedDisease) {
+              console.log(`[ArogyaSathi] Refinement adjusted prediction from "${predictedDisease}" to "${refined}"`);
+              predictedDisease = refined;
+
+              if (probabilities[refined]) {
+                confidenceScore = Math.round(probabilities[refined] * 100);
+              } else {
+                confidenceScore = 75; // strong default fallback
+              }
+            }
+          } catch (refineErr) {
+            console.warn("Prediction refinement failed:", refineErr);
+          }
 
           // Apply Confidence Calibration & Rejection Rules from the approved plan:
           // 1. Reject predictions below 60% as Inconclusive
@@ -498,10 +518,28 @@ function Detection() {
                   setDragOver(false);
                   if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
                 }}
-                className={`relative glass rounded-3xl p-8 transition-all ${
-                  dragOver ? "ring-4 ring-medical-light scale-[1.01]" : ""
-                }`}
+                className={`relative glass rounded-3xl p-8 transition-all ${dragOver ? "ring-4 ring-medical-light scale-[1.01]" : ""
+                  }`}
               >
+                {/* Error Banner */}
+                {errorMsg && (
+                  <div className="mb-5 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-start justify-between gap-3 text-rose-700 text-xs sm:text-sm animate-pulse-glow animate-duration-1000">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 shrink-0 text-rose-600 mt-0.5" />
+                      <div>
+                        <strong className="font-semibold block mb-0.5 text-rose-800">Invalid Photo Uploaded</strong>
+                        {errorMsg}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setErrorMsg(null)}
+                      className="text-rose-600 hover:text-rose-800 text-xs font-bold leading-none p-1 rounded-md hover:bg-rose-500/5 transition"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+
                 {/* Backend status banner */}
                 {backendDown && (
                   <div className="mb-5 p-4 rounded-2xl bg-medical-tint/70 border border-medical-light/20 flex items-start gap-3 text-medical-dark text-xs">
@@ -599,18 +637,17 @@ function Detection() {
                           </h3>
                           {GetSeverityBadge(result.disease)}
                         </div>
-                        <p className={`mt-2.5 text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-xl border inline-flex items-center gap-1.5 ${
-                          result.disease === "Normal"
-                            ? "text-emerald-600 bg-emerald-500/5 border-emerald-500/10"
-                            : result.disease === "Inconclusive Result"
+                        <p className={`mt-2.5 text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-xl border inline-flex items-center gap-1.5 ${result.disease === "Normal"
+                          ? "text-emerald-600 bg-emerald-500/5 border-emerald-500/10"
+                          : result.disease === "Inconclusive Result"
                             ? "text-slate-600 bg-slate-500/5 border-slate-500/10"
                             : "text-rose-600 bg-rose-500/5 border-rose-500/10"
-                        }`}>
+                          }`}>
                           {result.disease === "Normal"
                             ? "✓ Based on the analysis, your skin has a high probability of being healthy."
                             : result.disease === "Inconclusive Result"
-                            ? "⚠️ The screening is inconclusive. Please re-take the photo or consult a doctor."
-                            : "⚠️ This condition has a high chance of being present based on the image analysis."}
+                              ? "⚠️ The screening is inconclusive. Please re-take the photo or consult a doctor."
+                              : "⚠️ This condition has a high chance of being present based on the image analysis."}
                         </p>
                       </div>
                       <div className="text-right">
@@ -715,20 +752,19 @@ function Detection() {
                     <div className="border-t border-border pt-5 space-y-3">
                       <div className="flex items-center justify-between">
                         <h4 className="flex items-center gap-2 font-semibold text-medical-dark text-sm">
-                          <Sparkles className="h-4 w-4 text-medical-light animate-pulse-glow" /> Gemini Clinical Report
+                          AI Clinical Report
                         </h4>
-                        
+
                         {/* Language Selector */}
                         <div className="flex gap-1 border border-border rounded-lg p-0.5 bg-white/60 text-[10px]">
                           {langs.map((l) => (
                             <button
                               key={l.code}
                               onClick={() => handleLangChange(l.code)}
-                              className={`px-2 py-0.5 rounded-md font-medium transition ${
-                                lang === l.code
-                                  ? "bg-medical-dark text-white shadow-sm"
-                                  : "text-muted-foreground hover:text-medical-dark"
-                              }`}
+                              className={`px-2 py-0.5 rounded-md font-medium transition ${lang === l.code
+                                ? "bg-medical-dark text-white shadow-sm"
+                                : "text-muted-foreground hover:text-medical-dark"
+                                }`}
                             >
                               {l.label}
                             </button>
@@ -788,9 +824,8 @@ function Detection() {
                         initial={{ opacity: 0, x: 10 }}
                         animate={{ opacity: 1, x: 0 }}
                         onClick={() => setResult(h)}
-                        className={`flex gap-3 p-3 rounded-2xl bg-white border cursor-pointer hover:border-medical-light hover:shadow-sm transition ${
-                          result?.id === h.id ? "border-medical-light ring-2 ring-medical-light/10" : "border-border"
-                        }`}
+                        className={`flex gap-3 p-3 rounded-2xl bg-white border cursor-pointer hover:border-medical-light hover:shadow-sm transition ${result?.id === h.id ? "border-medical-light ring-2 ring-medical-light/10" : "border-border"
+                          }`}
                       >
                         <img
                           src={h.image}
@@ -809,9 +844,8 @@ function Detection() {
                           <div className="text-xs text-muted-foreground">
                             {new Date(h.time).toLocaleString()}
                           </div>
-                          <div className={`mt-1.5 inline-block text-[10px] px-2 py-0.5 rounded-full font-bold text-white ${
-                            h.confidence >= 60 ? "bg-rose-500" : h.confidence >= 25 ? "bg-amber-500" : "bg-slate-400"
-                          }`}>
+                          <div className={`mt-1.5 inline-block text-[10px] px-2 py-0.5 rounded-full font-bold text-white ${h.confidence >= 60 ? "bg-rose-500" : h.confidence >= 25 ? "bg-amber-500" : "bg-slate-400"
+                            }`}>
                             {h.confidence >= 60 ? "High Chance" : h.confidence >= 25 ? "Mod. Chance" : "Low Chance"}
                           </div>
                         </div>
