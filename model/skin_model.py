@@ -20,6 +20,45 @@ except Exception as e:
     processor = None
     model = None
 
+CLASS_MAPPING = {
+    # Real Model Classes
+    "Acne": "Acne",
+    "Eczema": "Eczema",
+    "Psoriasis": "Psoriasis",
+    "Vitiligo": "Vitiligo",
+    "Warts": "Warts",
+    "Rosacea": "Rosacea",
+    "Skin Cancer": "Melanoma",
+    "Actinic Keratosis": "Basal Cell Carcinoma",
+    "Tinea": "Fungal Infections",
+    "Candidiasis": "Fungal Infections",
+    "Unknown Normal": "Normal",
+    "Drug Eruption": "Dermatitis",
+    "Lichen": "Dermatitis",
+    "Lupus": "Dermatitis",
+    "Vasculitis": "Dermatitis",
+    "Bullous": "Dermatitis",
+    "Infestations Bites": "Dermatitis",
+    "Benign Tumors": "Normal",
+    "Seborrh Keratoses": "Normal",
+    "Moles": "Normal",
+    "Sun Sunlight Damage": "Normal",
+    "Vascular Tumors": "Normal",
+    
+    # Simulator / Fallback Classes
+    "Seborrheic Keratosis": "Normal",
+    "Ringworm": "Fungal Infections",
+    "Shingles": "Dermatitis",
+    "Hives": "Dermatitis",
+    "Impetigo": "Dermatitis",
+    "Alopecia": "Normal",
+    "Keloid": "Normal",
+    "Cyst": "Normal",
+    "Skin Tag": "Normal",
+    "Scabies": "Dermatitis",
+    "Normal": "Normal"
+}
+
 def predict_skin_disease(image_bytes: bytes):
     if model is None or processor is None:
         # Fallback simulated response
@@ -40,8 +79,16 @@ def predict_skin_disease(image_bytes: bytes):
         sum_exp = sum(exp_scores)
         probabilities = {categories[i]: round(exp_scores[i] / sum_exp, 4) for i in range(len(categories))}
         
-        # Sort and take top 5
-        sorted_probs = dict(sorted(probabilities.items(), key=lambda item: item[1], reverse=True)[:5])
+        # Map simulated probabilities to frontend target classes
+        mapped_probs = {}
+        for cat, prob in probabilities.items():
+            mapped_cat = CLASS_MAPPING.get(cat, cat)
+            mapped_probs[mapped_cat] = mapped_probs.get(mapped_cat, 0.0) + prob
+            
+        for k in mapped_probs:
+            mapped_probs[k] = round(mapped_probs[k], 4)
+            
+        sorted_probs = dict(sorted(mapped_probs.items(), key=lambda item: item[1], reverse=True)[:5])
         top_label = list(sorted_probs.keys())[0]
         top_confidence = sorted_probs[top_label]
 
@@ -63,21 +110,24 @@ def predict_skin_disease(image_bytes: bytes):
         probabilities = torch.nn.functional.softmax(logits, dim=-1)[0]
     inference_time_ms = round((time.time() - start_time) * 1000, 1)
         
-    top_prob, top_indices = torch.topk(probabilities, 5)
+    # Map real probabilities to frontend target classes
+    mapped_probs = {}
     labels = model.config.id2label
-    
-    prob_dict = {}
-    for i in range(len(top_indices)):
-        idx = int(top_indices[i])
-        prob = float(top_prob[i])
-        prob_dict[labels[idx]] = round(prob, 4)
+    for idx, prob in enumerate(probabilities):
+        label = labels.get(idx, f"class_{idx}")
+        mapped_label = CLASS_MAPPING.get(label, label)
+        mapped_probs[mapped_label] = mapped_probs.get(mapped_label, 0.0) + float(prob)
         
-    top_label = labels[int(top_indices[0])]
-    top_confidence = float(top_prob[0])
+    for k in mapped_probs:
+        mapped_probs[k] = round(mapped_probs[k], 4)
+        
+    sorted_probs = dict(sorted(mapped_probs.items(), key=lambda item: item[1], reverse=True)[:5])
+    top_label = list(sorted_probs.keys())[0]
+    top_confidence = sorted_probs[top_label]
     
     return {
         "prediction": top_label,
         "confidence": top_confidence,
-        "probabilities": prob_dict,
+        "probabilities": sorted_probs,
         "inference_time_ms": inference_time_ms
     }
