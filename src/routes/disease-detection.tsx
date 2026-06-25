@@ -98,6 +98,10 @@ const STATIC_GUIDELINES: Record<string, { symptoms: string[]; precautions: strin
   "Rosacea": {
     symptoms: ["Persistent facial redness", "Swollen red bumps resembling acne", "Visible small blood vessels on nose and cheeks", "Eye irritation or dryness"],
     precautions: ["Avoid trigger foods (spicy dishes, hot beverages)", "Use gentle, fragrance-free skincare products", "Protect your face from extreme heat, cold, or wind"]
+  },
+  "Inconclusive Result": {
+    symptoms: ["The screening could not confidently identify a specific skin condition.", "This can happen due to poor lighting, blurriness, or low contrast in the photo.", "The lesion structure does not match standard patterns in our dataset."],
+    precautions: ["Re-take the photograph in well-lit, direct light and ensure it is fully in focus.", "Do not zoom in too closely or stand too far; ensure the lesion is centered.", "IMPORTANT: Since the screening is inconclusive, consult a dermatologist if symptoms persist or worsen."]
   }
 };
 
@@ -117,6 +121,12 @@ function GetSeverityBadge(disease: string) {
         <AlertCircle className="h-3.5 w-3.5" /> Moderate - Treatable
       </span>
     );
+  } else if (disease === "Inconclusive Result") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-500/10 text-slate-600 border border-slate-500/20">
+        <AlertCircle className="h-3.5 w-3.5" /> Inconclusive
+      </span>
+    );
   } else {
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
@@ -129,14 +139,14 @@ function GetSeverityBadge(disease: string) {
 function FormatExplanation({ text }: { text: string }) {
   const lines = text.split('\n');
   return (
-    <div className="space-y-4 text-sm sm:text-base text-medical-dark/95 leading-relaxed text-left">
+    <div className="space-y-4 text-base sm:text-lg text-medical-dark/95 leading-relaxed text-left">
       {lines.map((line, idx) => {
         const trimmed = line.trim();
         
         // Header 3 (### Heading)
         if (trimmed.startsWith('###')) {
           return (
-            <h4 key={idx} className="font-display font-bold text-base sm:text-lg text-medical-dark mt-6 mb-2 border-b border-medical-light/10 pb-1 flex items-center gap-2">
+            <h4 key={idx} className="font-display font-bold text-lg sm:text-xl text-medical-dark mt-6 mb-2 border-b border-medical-light/10 pb-1 flex items-center gap-2">
               {trimmed.replace(/^###\s*/, '')}
             </h4>
           );
@@ -145,7 +155,7 @@ function FormatExplanation({ text }: { text: string }) {
         // Header 2 (## Heading)
         if (trimmed.startsWith('##')) {
           return (
-            <h3 key={idx} className="font-display font-bold text-lg sm:text-xl text-medical-dark mt-8 mb-3 flex items-center gap-2">
+            <h3 key={idx} className="font-display font-bold text-xl sm:text-2xl text-medical-dark mt-8 mb-3 flex items-center gap-2">
               {trimmed.replace(/^##\s*/, '')}
             </h3>
           );
@@ -154,7 +164,7 @@ function FormatExplanation({ text }: { text: string }) {
         // Header 1 (# Heading)
         if (trimmed.startsWith('#')) {
           return (
-            <h2 key={idx} className="font-display font-bold text-xl sm:text-2xl text-medical-dark mt-10 mb-4">
+            <h2 key={idx} className="font-display font-bold text-2xl sm:text-3xl text-medical-dark mt-10 mb-4">
               {trimmed.replace(/^#\s*/, '')}
             </h2>
           );
@@ -169,7 +179,7 @@ function FormatExplanation({ text }: { text: string }) {
             return (
               <div key={idx} className="flex gap-2.5 pl-4 py-0.5 items-start">
                 <span className="h-1.5 w-1.5 rounded-full bg-medical-light shrink-0 mt-2" />
-                <span className="text-sm sm:text-base">
+                <span className="text-base sm:text-lg">
                   <strong className="text-medical-dark font-bold">{boldMatch[1]}:</strong>
                   {boldMatch[2]}
                 </span>
@@ -179,7 +189,7 @@ function FormatExplanation({ text }: { text: string }) {
           return (
             <div key={idx} className="flex gap-2.5 pl-4 py-0.5 items-start">
               <span className="h-1.5 w-1.5 rounded-full bg-medical-light shrink-0 mt-2" />
-              <span className="text-sm sm:text-base">{content.replace(/\*\*/g, '')}</span>
+              <span className="text-base sm:text-lg">{content.replace(/\*\*/g, '')}</span>
             </div>
           );
         }
@@ -192,7 +202,7 @@ function FormatExplanation({ text }: { text: string }) {
           return (
             <div key={idx} className="flex gap-2.5 pl-4 py-0.5 items-start">
               <span className="font-bold text-medical-light shrink-0 w-5 text-right">{numMatch[1]}.</span>
-              <span className="text-sm sm:text-base">
+              <span className="text-base sm:text-lg">
                 {boldMatch ? (
                   <>
                     <strong className="text-medical-dark font-bold">{boldMatch[1]}:</strong>
@@ -215,7 +225,7 @@ function FormatExplanation({ text }: { text: string }) {
         // Clean up double asterisks in normal text
         const cleanedText = trimmed.replace(/\*\*(.*?)\*\*/g, '$1');
         return (
-          <p key={idx} className="text-sm sm:text-base text-muted-foreground">
+          <p key={idx} className="text-base sm:text-lg text-muted-foreground">
             {cleanedText}
           </p>
         );
@@ -302,7 +312,14 @@ function Detection() {
       const generateReport = async () => {
         setExplaining(true);
         try {
-          const res = await explainSkinDisease(result.disease, result.confidence, lang);
+          const res = result.disease === "Inconclusive Result"
+            ? { text: lang === "hi" 
+                ? "यह स्क्रीनिंग किसी विशेष त्वचा रोग की पहचान नहीं कर पाती है।\n\n### संभावित कारण\n1. खराब रोशनी या कैमरे का धुंधलापन।\n2. त्वचा के पैच पर कम कंट्रास्ट होना।\n\n### अगले कदम\n* कृपया एक अच्छी रोशनी वाली जगह पर त्वचा की स्पष्ट और केंद्रित तस्वीर फिर से लें।\n* यदि लक्षण बने रहते हैं या बिगड़ते हैं, तो कृपया व्यक्तिगत रूप से त्वचा विशेषज्ञ (डर्मेटोलॉजिस्ट) से संपर्क करें।"
+                : lang === "gu"
+                ? "આ સ્ક્રિનિંગ કોઈ ચોક્કસ ત્વચા રોગની ઓળખ કરી શક્યું નથી.\n\n### સંભવિત કારણો\n1. નબળી રોશની અથવા કેમેરાની અસ્પષ્ટતા.\n2. ત્વચા પર ઓછું વિરોધાભાસ હોવું.\n\n### આગલા પગલાં\n* કૃપા કરીને સારી રોશનીવાળી જગ્યાએ ત્વચાની સ્પષ્ટ અને કેન્દ્રિત છબી ફરીથી લો.\n* જો લક્ષણો ચાલુ રહે અથવા વધુ બગડે, તો કૃપા કરીને વ્યક્તિગત રીતે ત્વચા નિષ્ણાત (ડર્મેટોલોજિસ્ટ) ની મુલાકાત લો."
+                : "The AI screening was unable to identify a specific skin condition with high confidence.\n\n### Potential Causes\n1. **Poor Lighting or Focus**: The photograph may be slightly blurry, out of focus, or taken in low light.\n2. **Low Contrast**: The lesion might not stand out clearly from the surrounding skin.\n3. **Atypical Presentation**: The symptom pattern may not match the diagnostic features in our dataset.\n\n### Recommended Actions\n* **Re-take the photograph** in bright, indirect natural light and ensure it is fully in focus.\n* **Avoid background clutter** or shadows.\n* **Consult a doctor**: If the skin patch continues to itch, hurt, or evolve, schedule an appointment with a certified dermatologist."
+              }
+            : await explainSkinDisease(result.disease, result.confidence, lang);
           const updatedResult = { ...result, explanation: res.text };
           setResult(updatedResult);
 
@@ -359,6 +376,14 @@ function Detection() {
           predictedDisease = pred.disease;
           confidenceScore = pred.confidence;
           probabilities = pred.allProbabilities;
+
+          // Apply Confidence Calibration & Rejection Rules from the approved plan:
+          // 1. Reject predictions below 60% as Inconclusive
+          if (confidenceScore < 60) {
+            predictedDisease = "Inconclusive Result";
+          }
+          // 2. Cap confidence at 98% (never show 100%)
+          confidenceScore = Math.min(confidenceScore, 98);
 
           const guidelines = STATIC_GUIDELINES[predictedDisease] || { symptoms: [], precautions: [] };
 
@@ -577,20 +602,36 @@ function Detection() {
                         <p className={`mt-2.5 text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-xl border inline-flex items-center gap-1.5 ${
                           result.disease === "Normal"
                             ? "text-emerald-600 bg-emerald-500/5 border-emerald-500/10"
+                            : result.disease === "Inconclusive Result"
+                            ? "text-slate-600 bg-slate-500/5 border-slate-500/10"
                             : "text-rose-600 bg-rose-500/5 border-rose-500/10"
                         }`}>
                           {result.disease === "Normal"
                             ? "✓ Based on the analysis, your skin has a high probability of being healthy."
+                            : result.disease === "Inconclusive Result"
+                            ? "⚠️ The screening is inconclusive. Please re-take the photo or consult a doctor."
                             : "⚠️ This condition has a high chance of being present based on the image analysis."}
                         </p>
                       </div>
                       <div className="text-right">
                         <div className="text-xs text-muted-foreground">AI Assessment</div>
                         <div className="font-display text-lg font-bold text-gradient">
-                          High Probability
+                          {result.disease === "Inconclusive Result" ? "Inconclusive" : "High Probability"}
                         </div>
                       </div>
                     </div>
+
+                    {/* Dermatologist Warning Referral Card */}
+                    {["Melanoma", "Basal Cell Carcinoma"].includes(result.disease) && (
+                      <div className="p-5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-700 text-xs sm:text-sm space-y-2">
+                        <strong className="font-bold flex items-center gap-1.5 text-rose-800 text-sm sm:text-base">
+                          <AlertTriangle className="h-4 w-4 shrink-0" /> URGENT: Dermatologist Referral Recommended
+                        </strong>
+                        <p className="leading-relaxed">
+                          This screening has flagged indicators matching high-risk lesions (like Melanoma or Basal Cell Carcinoma). We strongly recommend scheduling an in-person clinical evaluation with a certified dermatologist immediately for a formal biopsy and examination.
+                        </p>
+                      </div>
+                    )}
 
                     {/* Likelihood Distributions (Vit output bars) */}
                     {result.allProbabilities && Object.keys(result.allProbabilities).length > 0 && (

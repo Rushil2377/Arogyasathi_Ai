@@ -198,7 +198,7 @@ export async function explainSkinDisease(
   confidence: number,
   lang: string,
 ): Promise<GeminiResponse> {
-  const userPrompt = `The SkinVision-ViT skin disease screening model has predicted: "${disease}" with a confidence of ${confidence.toFixed(1)}%.
+  const userPrompt = `The SkinVision-ViT skin disease screening model has predicted: "${disease}" (detected with high chances of presence).
 As an AI medical assistant, please provide a detailed explanation of this screening result.
 
 Answer the following questions in simple language:
