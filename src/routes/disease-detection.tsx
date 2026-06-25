@@ -126,6 +126,104 @@ function GetSeverityBadge(disease: string) {
   }
 }
 
+function FormatExplanation({ text }: { text: string }) {
+  const lines = text.split('\n');
+  return (
+    <div className="space-y-4 text-sm sm:text-base text-medical-dark/95 leading-relaxed text-left">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+        
+        // Header 3 (### Heading)
+        if (trimmed.startsWith('###')) {
+          return (
+            <h4 key={idx} className="font-display font-bold text-base sm:text-lg text-medical-dark mt-6 mb-2 border-b border-medical-light/10 pb-1 flex items-center gap-2">
+              {trimmed.replace(/^###\s*/, '')}
+            </h4>
+          );
+        }
+        
+        // Header 2 (## Heading)
+        if (trimmed.startsWith('##')) {
+          return (
+            <h3 key={idx} className="font-display font-bold text-lg sm:text-xl text-medical-dark mt-8 mb-3 flex items-center gap-2">
+              {trimmed.replace(/^##\s*/, '')}
+            </h3>
+          );
+        }
+
+        // Header 1 (# Heading)
+        if (trimmed.startsWith('#')) {
+          return (
+            <h2 key={idx} className="font-display font-bold text-xl sm:text-2xl text-medical-dark mt-10 mb-4">
+              {trimmed.replace(/^#\s*/, '')}
+            </h2>
+          );
+        }
+
+        // Bold list item or bullet (* **Bold**: text)
+        if (trimmed.startsWith('*') || trimmed.startsWith('-')) {
+          const content = trimmed.replace(/^[\*\-]\s*/, '');
+          // Check for bold prefix: **Text**: or **Text**
+          const boldMatch = content.match(/^\*\*(.*?)\*\*:(.*)$/);
+          if (boldMatch) {
+            return (
+              <div key={idx} className="flex gap-2.5 pl-4 py-0.5 items-start">
+                <span className="h-1.5 w-1.5 rounded-full bg-medical-light shrink-0 mt-2" />
+                <span className="text-sm sm:text-base">
+                  <strong className="text-medical-dark font-bold">{boldMatch[1]}:</strong>
+                  {boldMatch[2]}
+                </span>
+              </div>
+            );
+          }
+          return (
+            <div key={idx} className="flex gap-2.5 pl-4 py-0.5 items-start">
+              <span className="h-1.5 w-1.5 rounded-full bg-medical-light shrink-0 mt-2" />
+              <span className="text-sm sm:text-base">{content.replace(/\*\*/g, '')}</span>
+            </div>
+          );
+        }
+
+        // Numbered list item (e.g. 1. text)
+        const numMatch = trimmed.match(/^(\d+)\.\s*(.*)$/);
+        if (numMatch) {
+          const content = numMatch[2];
+          const boldMatch = content.match(/^\*\*(.*?)\*\*:(.*)$/);
+          return (
+            <div key={idx} className="flex gap-2.5 pl-4 py-0.5 items-start">
+              <span className="font-bold text-medical-light shrink-0 w-5 text-right">{numMatch[1]}.</span>
+              <span className="text-sm sm:text-base">
+                {boldMatch ? (
+                  <>
+                    <strong className="text-medical-dark font-bold">{boldMatch[1]}:</strong>
+                    {boldMatch[2]}
+                  </>
+                ) : (
+                  content.replace(/\*\*/g, '')
+                )}
+              </span>
+            </div>
+          );
+        }
+
+        // Empty line
+        if (!trimmed) {
+          return <div key={idx} className="h-2" />;
+        }
+
+        // Normal paragraph
+        // Clean up double asterisks in normal text
+        const cleanedText = trimmed.replace(/\*\*(.*?)\*\*/g, '$1');
+        return (
+          <p key={idx} className="text-sm sm:text-base text-muted-foreground">
+            {cleanedText}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 function Detection() {
   const scanType = "skin";
   const [preview, setPreview] = useState<string | null>(null);
@@ -476,50 +574,63 @@ function Detection() {
                           </h3>
                           {GetSeverityBadge(result.disease)}
                         </div>
+                        <p className={`mt-2.5 text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-xl border inline-flex items-center gap-1.5 ${
+                          result.disease === "Normal"
+                            ? "text-emerald-600 bg-emerald-500/5 border-emerald-500/10"
+                            : "text-rose-600 bg-rose-500/5 border-rose-500/10"
+                        }`}>
+                          {result.disease === "Normal"
+                            ? "✓ Based on the analysis, your skin has a high probability of being healthy."
+                            : "⚠️ This condition has a high chance of being present based on the image analysis."}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <div className="text-xs text-muted-foreground">Confidence</div>
-                        <div className="font-display text-2xl font-bold text-gradient">
-                          {result.confidence}%
+                        <div className="text-xs text-muted-foreground">AI Assessment</div>
+                        <div className="font-display text-lg font-bold text-gradient">
+                          High Probability
                         </div>
                       </div>
                     </div>
 
-                    {/* Confidence Visual Bar */}
-                    <div>
-                      <div className="mt-2 h-2 rounded-full bg-medical-tint overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${result.confidence}%` }}
-                          transition={{ duration: 1.2, ease: "easeOut" }}
-                          className="h-full gradient-medical"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Probability Distributions (Vit output bars) */}
+                    {/* Likelihood Distributions (Vit output bars) */}
                     {result.allProbabilities && Object.keys(result.allProbabilities).length > 0 && (
-                      <div className="bg-white/40 p-5 rounded-2xl border border-border">
+                      <div className="bg-white/40 p-5 rounded-2xl border border-border shadow-sm">
                         <h4 className="flex items-center gap-2 font-semibold text-medical-dark text-sm mb-4">
-                          <TrendingUp className="h-4 w-4 text-medical-light" /> Probability Distribution (Top Classes)
+                          <TrendingUp className="h-4 w-4 text-medical-light" /> Likelihood Distribution (Top Conditions)
                         </h4>
                         <div className="space-y-3.5">
                           {Object.entries(result.allProbabilities)
                             .sort(([, a], [, b]) => b - a)
                             .map(([label, probability]) => {
-                              const percentage = Math.round(probability * 100);
+                              let chanceText = "Low Chance";
+                              let chanceColor = "text-muted-foreground font-medium";
+                              let barWidth = "15%";
+                              let barColor = "bg-slate-300";
+
+                              if (probability >= 0.6) {
+                                chanceText = "High Chance of Presence";
+                                chanceColor = "text-rose-600 font-bold";
+                                barWidth = "90%";
+                                barColor = "bg-rose-500";
+                              } else if (probability >= 0.25) {
+                                chanceText = "Moderate Chance";
+                                chanceColor = "text-amber-600 font-semibold";
+                                barWidth = "55%";
+                                barColor = "bg-amber-500";
+                              }
+
                               return (
                                 <div key={label} className="space-y-1">
-                                  <div className="flex justify-between text-xs font-medium text-medical-dark">
-                                    <span>{label}</span>
-                                    <span>{percentage}%</span>
+                                  <div className="flex justify-between text-xs text-medical-dark">
+                                    <span className="font-semibold">{label}</span>
+                                    <span className={chanceColor}>{chanceText}</span>
                                   </div>
-                                  <div className="h-1.5 rounded-full bg-white border border-border overflow-hidden">
+                                  <div className="h-2 rounded-full bg-white border border-border overflow-hidden">
                                     <motion.div
                                       initial={{ width: 0 }}
-                                      animate={{ width: `${percentage}%` }}
+                                      animate={{ width: barWidth }}
                                       transition={{ duration: 1.2 }}
-                                      className="h-full bg-medical-light"
+                                      className={`h-full ${barColor}`}
                                     />
                                   </div>
                                 </div>
@@ -590,8 +701,8 @@ function Detection() {
                           <span>Generating expert explanation in {langs.find((l) => l.code === lang)?.label}…</span>
                         </div>
                       ) : result.explanation ? (
-                        <div className="prose prose-sm max-w-none text-xs text-muted-foreground leading-relaxed whitespace-pre-line bg-white/40 p-5 rounded-2xl border border-border">
-                          {result.explanation}
+                        <div className="bg-white/60 p-6 sm:p-8 rounded-2xl border border-border shadow-sm">
+                          <FormatExplanation text={result.explanation} />
                         </div>
                       ) : (
                         <p className="text-xs text-muted-foreground italic">Failed to generate explanation. Choose language to retry.</p>
@@ -657,8 +768,10 @@ function Detection() {
                           <div className="text-xs text-muted-foreground">
                             {new Date(h.time).toLocaleString()}
                           </div>
-                          <div className="mt-1.5 inline-block text-[10px] px-2 py-0.5 rounded-full gradient-medical text-white font-bold">
-                            {h.confidence}% conf.
+                          <div className={`mt-1.5 inline-block text-[10px] px-2 py-0.5 rounded-full font-bold text-white ${
+                            h.confidence >= 60 ? "bg-rose-500" : h.confidence >= 25 ? "bg-amber-500" : "bg-slate-400"
+                          }`}>
+                            {h.confidence >= 60 ? "High Chance" : h.confidence >= 25 ? "Mod. Chance" : "Low Chance"}
                           </div>
                         </div>
                       </motion.div>
