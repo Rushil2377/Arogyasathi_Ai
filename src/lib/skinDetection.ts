@@ -85,3 +85,21 @@ export async function predictSkinDisease(file: File): Promise<SkinPredictionResu
     };
   }
 }
+
+/**
+ * Checks if the FastAPI backend is running and healthy.
+ */
+export async function checkBackendHealth(): Promise<boolean> {
+  const url = `${API_URL}/health`;
+  try {
+    const response = await fetch(url, { method: "GET" });
+    if (response.ok) {
+      const data = await response.json();
+      return data?.status === "healthy";
+    }
+    return false;
+  } catch (err) {
+    return false;
+  }
+}
+

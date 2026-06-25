@@ -13,16 +13,13 @@ import {
   AlertTriangle,
   Sparkles,
   TrendingUp,
-  Eye,
-  Activity,
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import Reveal from "@/components/Reveal";
 import { storage, KEYS } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
-import { predictEyeDisease, checkBackendHealth } from "@/lib/retinasense";
-import { predictSkinDisease } from "@/lib/skinDetection";
-import { explainDisease, validateEyeImage, explainSkinDisease, validateSkinImage } from "@/lib/gemini";
+import { predictSkinDisease, checkBackendHealth } from "@/lib/skinDetection";
+import { explainSkinDisease, validateSkinImage } from "@/lib/gemini";
 
 export const Route = createFileRoute("/disease-detection")({
   beforeLoad: async () => {
@@ -33,7 +30,7 @@ export const Route = createFileRoute("/disease-detection")({
       throw redirect({ to: "/login" });
     }
   },
-  head: () => ({ meta: [{ title: "Disease Detection • ArogyaSathi AI" }] }),
+  head: () => ({ meta: [{ title: "Skin Screening • ArogyaSathi AI" }] }),
   component: Detection,
 });
 
@@ -57,26 +54,9 @@ const langs = [
 ];
 
 const STATIC_GUIDELINES: Record<string, { symptoms: string[]; precautions: string[] }> = {
-  // Eye Diseases
   "Normal": {
-    symptoms: ["Clear central and peripheral vision", "No visual distortions", "Normal color perception"],
-    precautions: ["Schedule annual eye exams", "Wear UV-blocking sunglasses", "Eat leafy greens and omega-3s", "Follow 20-20-20 rule for screen time"]
-  },
-  "Diabetic Retinopathy": {
-    symptoms: ["Blurry or fluctuating vision", "Floaters (spots/strings)", "Dark or empty areas in vision", "Difficulty with color perception"],
-    precautions: ["Maintain strict blood sugar control", "Monitor blood pressure and cholesterol", "Get annual dilated eye exams", "Avoid smoking and exercise regularly"]
-  },
-  "Glaucoma": {
-    symptoms: ["Gradual loss of peripheral vision (tunnel vision)", "Severe eye pain (in acute cases)", "Blurred vision or seeing halos", "Nausea or vomiting accompanying eye pain"],
-    precautions: ["Get regular eye pressure checks", "Use prescribed pressure-lowering drops consistently", "Wear protective eyewear", "Inform blood relatives (strong genetic link)"]
-  },
-  "Cataract": {
-    symptoms: ["Cloudy, blurry, or dim vision", "Increasing difficulty with vision at night", "Sensitivity to light and glare", "Fading or yellowing of colors"],
-    precautions: ["Protect eyes from UV light", "Quit smoking and limit alcohol", "Ensure corrective lens prescription is updated", "Discuss surgical options with ophthalmologist"]
-  },
-  "AMD": {
-    symptoms: ["Gradual or sudden loss of central vision", "Visual distortions (straight lines wavy)", "Difficulty recognizing faces", "Dark/blurry spot in center of vision"],
-    precautions: ["Take advised eye health supplements (AREDS2)", "Protect eyes from blue light and UV", "Eat diet rich in lutein and zeaxanthin", "Monitor vision daily using an Amsler grid"]
+    symptoms: ["Healthy skin structure with even tone", "No visible inflammation, lesions, or scaling", "Normal skin hydration and barrier function"],
+    precautions: ["Maintain a daily gentle skincare routine", "Apply broad-spectrum sunscreen daily (SPF 30+)", "Stay hydrated and eat a balanced diet", "Perform monthly self-exams to check for new spots or changes"]
   },
   // Skin Diseases
   "Acne": {
@@ -122,8 +102,8 @@ const STATIC_GUIDELINES: Record<string, { symptoms: string[]; precautions: strin
 };
 
 function GetSeverityBadge(disease: string) {
-  const highRisk = ["Melanoma", "Basal Cell Carcinoma", "Glaucoma", "Cataract"];
-  const moderateRisk = ["Eczema", "Psoriasis", "Fungal Infections", "Dermatitis", "Diabetic Retinopathy", "AMD"];
+  const highRisk = ["Melanoma", "Basal Cell Carcinoma"];
+  const moderateRisk = ["Eczema", "Psoriasis", "Fungal Infections", "Dermatitis"];
 
   if (highRisk.includes(disease)) {
     return (
@@ -147,7 +127,7 @@ function GetSeverityBadge(disease: string) {
 }
 
 function Detection() {
-  const [scanType, setScanType] = useState<"eye" | "skin">("eye");
+  const scanType = "skin";
   const [preview, setPreview] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [explaining, setExplaining] = useState(false);
@@ -198,7 +178,7 @@ function Detection() {
                 precautions: d.recommendations || STATIC_GUIDELINES[d.predicted_condition]?.precautions || [],
                 explanation: cache.explanation,
                 allProbabilities: cache.allProbabilities,
-                scanType: cache.scanType ?? (d.predicted_condition.includes("Retinopathy") || ["Normal", "Glaucoma", "Cataract", "AMD"].includes(d.predicted_condition) ? "eye" : "skin"),
+                scanType: "skin",
                 time: new Date(d.created_at).getTime(),
               };
             }),
@@ -224,12 +204,7 @@ function Detection() {
       const generateReport = async () => {
         setExplaining(true);
         try {
-          let res;
-          if (result.scanType === "skin") {
-            res = await explainSkinDisease(result.disease, result.confidence, lang);
-          } else {
-            res = await explainDisease(result.disease, result.confidence, lang);
-          }
+          const res = await explainSkinDisease(result.disease, result.confidence, lang);
           const updatedResult = { ...result, explanation: res.text };
           setResult(updatedResult);
 
@@ -272,42 +247,20 @@ function Detection() {
           let confidenceScore = 0;
           let probabilities: Record<string, number> = {};
 
-          if (scanType === "eye") {
-            // 0. Validate eye image
-            const validationResult = await validateEyeImage(dataUrl);
-            if (validationResult === "INVALID") {
-              setAnalyzing(false);
-              setPreview(null);
-              alert("Invalid Image: The uploaded photograph does not appear to be an eye. Please upload a valid eye fundus photograph for screening.");
-              return;
-            } else if (validationResult === "EXTERNAL_EYE") {
-              setAnalyzing(false);
-              setPreview(null);
-              alert("External Eye Photo Detected: RetinaSense-ViT is trained exclusively on internal retinal fundus scans. Please upload a circular fundus scan.");
-              return;
-            }
-
-            // 1. Run prediction
-            const pred = await predictEyeDisease(file);
-            predictedDisease = pred.disease;
-            confidenceScore = pred.confidence;
-            probabilities = pred.allProbabilities;
-          } else {
-            // 0. Validate skin image
-            const validationResult = await validateSkinImage(dataUrl);
-            if (validationResult === "INVALID") {
-              setAnalyzing(false);
-              setPreview(null);
-              alert("Invalid Image: The uploaded photograph does not appear to be a skin patch. Please upload a valid skin image showing symptoms.");
-              return;
-            }
-
-            // 1. Run prediction
-            const pred = await predictSkinDisease(file);
-            predictedDisease = pred.disease;
-            confidenceScore = pred.confidence;
-            probabilities = pred.allProbabilities;
+          // 0. Validate skin image
+          const validationResult = await validateSkinImage(dataUrl);
+          if (validationResult === "INVALID") {
+            setAnalyzing(false);
+            setPreview(null);
+            alert("Invalid Image: The uploaded photograph does not appear to be a skin patch. Please upload a valid skin image showing symptoms.");
+            return;
           }
+
+          // 1. Run prediction
+          const pred = await predictSkinDisease(file);
+          predictedDisease = pred.disease;
+          confidenceScore = pred.confidence;
+          probabilities = pred.allProbabilities;
 
           const guidelines = STATIC_GUIDELINES[predictedDisease] || { symptoms: [], precautions: [] };
 
@@ -320,7 +273,7 @@ function Detection() {
             symptoms: guidelines.symptoms,
             precautions: guidelines.precautions,
             allProbabilities: probabilities,
-            scanType: scanType,
+            scanType: "skin",
           };
 
           setResult(det);
@@ -364,7 +317,7 @@ function Detection() {
       };
       reader.readAsDataURL(file);
     },
-    [scanType, userId],
+    [userId],
   );
 
   const handleLangChange = (newLang: string) => {
@@ -398,44 +351,12 @@ function Detection() {
                 </div>
                 <div>
                   <h1 className="font-display text-2xl font-bold text-medical-dark">
-                    AI Disease Screening
+                    AI Skin Disease Screening
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                    Upload an image for automated diagnostic classification and guidelines.
+                    Upload an image for automated dermatological classification and guidelines.
                   </p>
                 </div>
-              </div>
-
-              {/* Segmented Scan Type Selector */}
-              <div className="flex bg-white/60 p-1.5 rounded-2xl border border-border backdrop-blur-md">
-                <button
-                  onClick={() => {
-                    setScanType("eye");
-                    setPreview(null);
-                    setResult(null);
-                  }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition ${
-                    scanType === "eye"
-                      ? "gradient-medical text-white shadow-sm"
-                      : "text-muted-foreground hover:text-medical-dark"
-                  }`}
-                >
-                  <Eye className="h-4 w-4" /> Retinal Eye Scan
-                </button>
-                <button
-                  onClick={() => {
-                    setScanType("skin");
-                    setPreview(null);
-                    setResult(null);
-                  }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition ${
-                    scanType === "skin"
-                      ? "gradient-medical text-white shadow-sm"
-                      : "text-muted-foreground hover:text-medical-dark"
-                  }`}
-                >
-                  <Activity className="h-4 w-4" /> Skin Disease Scan
-                </button>
               </div>
             </div>
           </Reveal>
@@ -464,7 +385,7 @@ function Detection() {
                     <ShieldCheck className="h-4 w-4 shrink-0 text-medical-light mt-0.5 animate-pulse-glow" />
                     <div>
                       <strong className="font-semibold block mb-0.5 text-medical-dark">Local AI Simulator Active</strong>
-                      The local FastAPI server is not running on port 8000. Eye/Skin disease screening is running in local simulation mode in your browser so you can test all features out-of-the-box.
+                      The local FastAPI server is not running on port 8000. Skin disease screening is running in local simulation mode in your browser so you can test all features out-of-the-box.
                     </div>
                   </div>
                 )}
@@ -479,12 +400,10 @@ function Detection() {
                       <Upload className="h-9 w-9 text-medical-dark" />
                     </motion.div>
                     <h3 className="font-display text-lg font-bold text-medical-dark">
-                      {scanType === "eye" ? "Drag & drop eye fundus image" : "Drag & drop skin patch image"}
+                      Drag & drop skin patch image
                     </h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {scanType === "eye"
-                        ? "Upload a circular fundus scan photograph (JPG, PNG up to 10MB)"
-                        : "Upload a clear closeup photo of the skin lesion or patch (JPG, PNG up to 10MB)"}
+                      Upload a clear closeup photo of the skin lesion or patch (JPG, PNG up to 10MB)
                     </p>
                     <button
                       onClick={() => inputRef.current?.click()}
@@ -518,7 +437,7 @@ function Detection() {
                               className="inline-flex h-12 w-12 rounded-full border-2 border-white border-t-transparent"
                             />
                             <div className="mt-3 text-sm font-semibold">
-                              {scanType === "eye" ? "Screening Retinal Image…" : "Analyzing Dermatological Patch…"}
+                              Analyzing Dermatological Patch…
                             </div>
                           </div>
                         </div>
@@ -681,7 +600,7 @@ function Detection() {
 
                     {/* General Disclaimer */}
                     <div className="mt-6 p-4 rounded-2xl bg-medical-tint text-xs text-medical-dark/80 leading-relaxed border border-medical-light/10">
-                      <strong>Disclaimer:</strong> This is an AI-assisted screening simulation tool, not a certified medical diagnosis. Always consult a qualified physician or specialist (ophthalmologist/dermatologist) before any clinical treatment.
+                      <strong>Disclaimer:</strong> This is an AI-assisted screening simulation tool, not a certified medical diagnosis. Always consult a qualified physician or specialist (dermatologist) before any clinical treatment.
                     </div>
                   </motion.div>
                 )}
@@ -732,7 +651,7 @@ function Detection() {
                               {h.disease}
                             </span>
                             <span className="text-[10px] text-muted-foreground shrink-0 uppercase tracking-widest font-bold font-display">
-                              {h.scanType === "eye" ? "👁️ Eye" : "🧴 Skin"}
+                              🧴 Skin
                             </span>
                           </div>
                           <div className="text-xs text-muted-foreground">
