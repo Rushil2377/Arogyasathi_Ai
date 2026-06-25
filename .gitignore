@@ -33,3 +33,12 @@ dist-ssr
 
 # Local environment variables
 .env
+
+# Python caching and environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+ENV/
