@@ -83,8 +83,8 @@ const innovations = [
   },
   {
     icon: Mic,
-    title: "Voice + Text Interaction",
-    desc: "Talk or type — accessible for elderly and low-literacy users.",
+    title: "Text Interaction",
+    desc: "type — accessible for elderly and low-literacy users.",
   },
   {
     icon: FileText,

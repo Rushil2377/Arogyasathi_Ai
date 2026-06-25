@@ -163,7 +163,7 @@ function Signup() {
               <Field label="Full Name" icon={User} error={errors.name?.message}>
                 <input
                   className="input"
-                  placeholder="Rohan Sharma"
+                  placeholder="Username"
                   {...register("name", { required: "Name is required" })}
                   disabled={isSubmitting}
                 />
@@ -180,7 +180,7 @@ function Signup() {
               <Field label="Phone Number" icon={Phone} error={errors.phone?.message}>
                 <input
                   className="input"
-                  placeholder="+91 98765 43210"
+                  placeholder="Phone Number"
                   {...register("phone", { required: "Phone is required" })}
                   disabled={isSubmitting}
                 />

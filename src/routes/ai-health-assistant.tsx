@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Mic, Bot, User, Sparkles, Globe, Trash2 } from "lucide-react";
+import { Send, Bot, User, Sparkles, Globe, Trash2 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { storage, KEYS } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
@@ -356,13 +356,6 @@ function Assistant() {
                 }}
                 className="flex items-center gap-2"
               >
-                <button
-                  type="button"
-                  className="h-11 w-11 rounded-full bg-medical-tint text-medical-dark flex items-center justify-center hover:bg-medical-light hover:text-white transition"
-                  aria-label="Voice input"
-                >
-                  <Mic className="h-4 w-4" />
-                </button>
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
