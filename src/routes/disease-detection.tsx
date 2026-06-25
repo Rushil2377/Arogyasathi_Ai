@@ -44,7 +44,7 @@ type Detection = {
   time: number;
   explanation?: string;
   allProbabilities?: Record<string, number>;
-  scanType: "eye" | "skin";
+  scanType: "skin";
 };
 
 const langs = [
@@ -164,7 +164,7 @@ function Detection() {
           .order("created_at", { ascending: false });
 
         if (dbDets) {
-          const cachedDetails = storage.get<Record<string, { explanation?: string; allProbabilities?: Record<string, number>; scanType?: "eye" | "skin" }>>("disease_detection_cached_details", {});
+          const cachedDetails = storage.get<Record<string, { explanation?: string; allProbabilities?: Record<string, number>; scanType?: "skin" }>>("disease_detection_cached_details", {});
 
           setHistory(
             dbDets.map((d: any) => {

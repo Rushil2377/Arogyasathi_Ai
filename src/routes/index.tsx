@@ -51,7 +51,7 @@ const features = [
     icon: ScanLine,
     title: "Disease Detection",
     desc: "Upload an image, get an AI-powered prediction in seconds.",
-    points: ["Skin disease detection", "Eye infection detection", "Instant prediction"],
+    points: ["Skin disease detection", "AI-powered analysis", "Instant prediction"],
     to: "/disease-detection",
   },
   {
