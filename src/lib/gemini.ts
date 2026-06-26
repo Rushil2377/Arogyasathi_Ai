@@ -278,6 +278,87 @@ function hasSkinPixels(base64DataUrl: string): Promise<boolean> {
   });
 }
 
+export async function askArogyaSathiVision(
+  prompt: string,
+  mimeType: string,
+  base64Data: string,
+): Promise<string> {
+  if (!API_KEY) {
+    throw new Error("API key missing");
+  }
+
+  let lastError = "";
+
+  for (let i = 0; i < MODELS.length; i++) {
+    const model = MODELS[i];
+    console.log(`[ArogyaSathi Vision] Trying model: ${model}...`);
+
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    inlineData: {
+                      mimeType: mimeType,
+                      data: base64Data,
+                    },
+                  },
+                  {
+                    text: prompt,
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: 50,
+            },
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "";
+          if (text) {
+            console.log(`[ArogyaSathi Vision] Success with model: ${model} (attempt ${attempt})`);
+            return text;
+          }
+        }
+
+        const errBody = await response.json().catch(() => ({}));
+        const apiMsg = errBody?.error?.message ?? `HTTP ${response.status}`;
+        console.warn(`[ArogyaSathi Vision] Model ${model} (attempt ${attempt}) returned error ${response.status}: ${apiMsg}`);
+        lastError = apiMsg;
+
+        if (response.status === 429 || response.status === 503 || response.status === 504) {
+          if (attempt === 1) {
+            const waitTime = response.status === 429 ? 2000 : 1500;
+            await sleep(waitTime);
+            continue;
+          }
+        } else {
+          throw new Error(apiMsg);
+        }
+      } catch (err) {
+        console.error(`[ArogyaSathi Vision] Error with model ${model} (attempt ${attempt}):`, err);
+        lastError = (err as Error).message;
+        if (attempt === 1) {
+          await sleep(1500);
+          continue;
+        }
+      }
+    }
+  }
+
+  throw new Error(lastError || "All vision models failed");
+}
+
 export async function validateSkinImage(base64DataUrl: string): Promise<"SKIN" | "INVALID"> {
   // 1. Run local skin pixel pre-filter
   const hasSkin = await hasSkinPixels(base64DataUrl);
@@ -300,25 +381,7 @@ export async function validateSkinImage(base64DataUrl: string): Promise<"SKIN" |
   const mimeType = match[1];
   const base64Data = match[2];
 
-  const model = "gemini-2.5-flash"; 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
-
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: base64Data,
-                },
-              },
-              {
-                text: `You are a medical screening validation system.
+  const prompt = `You are a medical screening validation system.
 Analyze the uploaded image. Classify it as:
 1. "SKIN": The image is a clear, close-up photograph of a human skin patch, skin lesion, rash, mole, acne, or skin texture. It MUST show skin surface clearly.
 2. "INVALID": The image is anything else, including:
@@ -327,30 +390,13 @@ Analyze the uploaded image. Classify it as:
    - Document scans, text, charts, diagrams, or diagrams of skin.
    - Unclear, extremely blurry, or dark images where skin details are invisible.
 
-Respond with ONLY the word "SKIN" or "INVALID". Do not write anything else.`,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.1,
-          maxOutputTokens: 10,
-        },
-      }),
-    });
+Respond with ONLY the word "SKIN" or "INVALID". Do not write anything else.`;
 
-    if (response.ok) {
-      const data = await response.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()?.toUpperCase() ?? "";
-      console.log("[ArogyaSathi] Skin image validation result:", text);
-      
-      if (text.includes("SKIN")) return "SKIN";
-      return "INVALID";
-    }
-
-    console.warn("[ArogyaSathi] Gemini image validation failed:", response.status);
-    // If Gemini fails (e.g. 429), rely on our local skin pixel check which passed
-    return "SKIN";
+  try {
+    const text = await askArogyaSathiVision(prompt, mimeType, base64Data);
+    console.log("[ArogyaSathi] Skin image validation result:", text);
+    if (text.toUpperCase().includes("SKIN")) return "SKIN";
+    return "INVALID";
   } catch (err) {
     console.error("[ArogyaSathi] Error validating skin image:", err);
     // If Gemini fails, rely on our local skin pixel check which passed
@@ -378,60 +424,27 @@ export async function refineSkinPrediction(
 
   const mimeType = match[1];
   const base64Data = match[2];
-
-  const model = "gemini-2.5-flash"; 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
-
   const candidatesList = Object.keys(probabilities).join(", ");
 
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: base64Data,
-                },
-              },
-              {
-                text: `You are an expert dermatological AI assistant.
+  const prompt = `You are an expert dermatological AI assistant.
 A Vision Transformer model has scanned this skin image and predicted the following top candidates (with their confidence scores):
 ${JSON.stringify(probabilities)}
 
 Your task is to analyze the image visually (checking lesion structure, color, boundaries, symmetry, and scaling) and refine the prediction.
 Choose the MOST accurate condition from the candidate list: [${candidatesList}, Normal, Inconclusive Result].
 
-Respond with ONLY the name of the chosen category (exactly as written in the list). Do not include any explanation, markdown, or other text.`,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.1,
-          maxOutputTokens: 15,
-        },
-      }),
-    });
+Respond with ONLY the name of the chosen category (exactly as written in the list). Do not include any explanation, markdown, or other text.`;
 
-    if (response.ok) {
-      const data = await response.ok ? await response.json() : {};
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "";
-      console.log("[ArogyaSathi] Gemini prediction refinement:", text);
-      
-      // Match the response against the valid candidates
-      const validLabels = [...Object.keys(probabilities), "Normal", "Inconclusive Result"];
-      for (const label of validLabels) {
-        if (text.toUpperCase() === label.toUpperCase() || text.toUpperCase().includes(label.toUpperCase())) {
-          return label;
-        }
+  try {
+    const text = await askArogyaSathiVision(prompt, mimeType, base64Data);
+    console.log("[ArogyaSathi] Gemini prediction refinement:", text);
+    
+    // Match the response against the valid candidates
+    const validLabels = [...Object.keys(probabilities), "Normal", "Inconclusive Result"];
+    for (const label of validLabels) {
+      if (text.toUpperCase() === label.toUpperCase() || text.toUpperCase().includes(label.toUpperCase())) {
+        return label;
       }
-    } else {
-      console.warn("[ArogyaSathi] Gemini prediction refinement failed:", response.status);
     }
     return topPrediction;
   } catch (err) {

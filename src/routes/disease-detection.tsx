@@ -670,6 +670,44 @@ function Detection() {
                       </div>
                     )}
 
+                    {/* AI Condition Explanation (Gemini) */}
+                    <div className="border-t border-border pt-3 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="flex items-center gap-2 font-semibold text-medical-dark text-sm">
+                          <Sparkles className="h-4 w-4 text-medical-light animate-pulse-glow" /> AI Condition Explanation
+                        </h4>
+
+                        {/* Language Selector */}
+                        <div className="flex gap-1 border border-border rounded-lg p-0.5 bg-white/60 text-[10px]">
+                          {langs.map((l) => (
+                            <button
+                              key={l.code}
+                              onClick={() => handleLangChange(l.code)}
+                              className={`px-2 py-0.5 rounded-md font-medium transition ${lang === l.code
+                                ? "bg-medical-dark text-white shadow-sm"
+                                : "text-muted-foreground hover:text-medical-dark"
+                                }`}
+                            >
+                              {l.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {explaining ? (
+                        <div className="py-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2.5">
+                          <div className="h-5 w-5 border-2 border-medical-light border-t-transparent rounded-full animate-spin" />
+                          <span>Analyzing skin condition and retrieving AI insights in {langs.find((l) => l.code === lang)?.label}…</span>
+                        </div>
+                      ) : result.explanation ? (
+                        <div className="bg-white/60 p-6 sm:p-8 rounded-2xl border border-border shadow-sm">
+                          <FormatExplanation text={result.explanation} />
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic">Failed to generate explanation. Choose language to retry.</p>
+                      )}
+                    </div>
+
                     {/* Likelihood Distributions (Vit output bars) */}
                     {result.allProbabilities && Object.keys(result.allProbabilities).length > 0 && (
                       <div className="bg-white/40 p-5 rounded-2xl border border-border shadow-sm">
@@ -746,44 +784,6 @@ function Detection() {
                           ))}
                         </ul>
                       </div>
-                    </div>
-
-                    {/* Gemini Explanations */}
-                    <div className="border-t border-border pt-5 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="flex items-center gap-2 font-semibold text-medical-dark text-sm">
-                          AI Clinical Report
-                        </h4>
-
-                        {/* Language Selector */}
-                        <div className="flex gap-1 border border-border rounded-lg p-0.5 bg-white/60 text-[10px]">
-                          {langs.map((l) => (
-                            <button
-                              key={l.code}
-                              onClick={() => handleLangChange(l.code)}
-                              className={`px-2 py-0.5 rounded-md font-medium transition ${lang === l.code
-                                ? "bg-medical-dark text-white shadow-sm"
-                                : "text-muted-foreground hover:text-medical-dark"
-                                }`}
-                            >
-                              {l.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {explaining ? (
-                        <div className="py-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2.5">
-                          <div className="h-5 w-5 border-2 border-medical-light border-t-transparent rounded-full animate-spin" />
-                          <span>Generating expert explanation in {langs.find((l) => l.code === lang)?.label}…</span>
-                        </div>
-                      ) : result.explanation ? (
-                        <div className="bg-white/60 p-6 sm:p-8 rounded-2xl border border-border shadow-sm">
-                          <FormatExplanation text={result.explanation} />
-                        </div>
-                      ) : (
-                        <p className="text-xs text-muted-foreground italic">Failed to generate explanation. Choose language to retry.</p>
-                      )}
                     </div>
 
                     {/* General Disclaimer */}
