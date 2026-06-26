@@ -6,6 +6,7 @@ import PageShell from "@/components/PageShell";
 import { storage, KEYS } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import { askArogyaSathi } from "@/lib/gemini";
+import { useTranslation } from "@/lib/translationContext";
 
 type SearchParams = {
   reportText?: string;
@@ -31,12 +32,6 @@ export const Route = createFileRoute("/ai-health-assistant")({
 
 type Msg = { id: string; role: "user" | "assistant"; text: string; time: number };
 
-const langs = [
-  { code: "en", label: "English" },
-  { code: "hi", label: "हिन्दी" },
-  { code: "gu", label: "ગુજરાતી" },
-];
-
 const prompts: Record<string, string[]> = {
   en: [
     "I have a mild fever and headache. What should I do?",
@@ -58,13 +53,11 @@ const prompts: Record<string, string[]> = {
   ],
 };
 
-// Gemini-powered responses — mockReply has been replaced by askArogyaSathi
-
 function Assistant() {
   const { reportText } = Route.useSearch();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
-  const [lang, setLang] = useState("en");
+  const { language: lang, t } = useTranslation();
   const [typing, setTyping] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
@@ -230,38 +223,26 @@ function Assistant() {
           {/* header */}
           <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl gradient-medical text-white flex items-center justify-center shadow-[var(--shadow-glow)]">
+              <div className="h-12 w-12 rounded-2xl gradient-medical text-white flex items-center justify-center shadow-[var(--shadow-glow)] animate-pulse-glow">
                 <Bot className="h-6 w-6" />
               </div>
               <div>
                 <h1 className="font-display text-2xl font-bold text-medical-dark">
-                  ArogyaSathi
+                  {t("assistant_name")}
                 </h1>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" /> Online •
-                  EN | हिन्दी | ગુજ
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" /> {t("online_status")}
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="glass rounded-full p-1 flex items-center gap-0.5">
-                <Globe className="h-3.5 w-3.5 ml-2 text-medical-light" />
-                {langs.map((l) => (
-                  <button
-                    key={l.code}
-                    onClick={() => setLang(l.code)}
-                    className={`px-3 py-1 text-xs font-semibold rounded-full transition ${lang === l.code ? "gradient-medical text-white" : "text-medical-dark hover:bg-medical-tint"}`}
-                  >
-                    {l.label}
-                  </button>
-                ))}
-              </div>
               <button
                 onClick={clearChat}
-                className="h-9 w-9 rounded-full glass flex items-center justify-center text-medical-dark hover:bg-white"
+                className="h-10 px-4 rounded-full glass flex items-center gap-2 text-xs font-semibold text-medical-dark hover:bg-white transition"
                 aria-label="Clear chat"
               >
                 <Trash2 className="h-4 w-4" />
+                {t("clear_chat")}
               </button>
             </div>
           </div>
@@ -276,16 +257,16 @@ function Assistant() {
                   className="text-center py-10"
                 >
                   <div className="inline-flex h-16 w-16 rounded-3xl gradient-medical text-white items-center justify-center mb-4 shadow-[var(--shadow-glow)]">
-                    <Sparkles className="h-7 w-7" />
+                    <Sparkles className="h-7 w-7 animate-pulse-glow" />
                   </div>
                   <h2 className="font-display text-xl font-bold text-medical-dark">
-                    How can I help you today?
+                    {t("ask_anything_title")}
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Ask anything about symptoms, medicines, or healthy habits.
+                    {t("ask_anything_desc")}
                   </p>
                   <div className="mt-6 grid sm:grid-cols-2 gap-2.5 max-w-xl mx-auto">
-                    {prompts[lang].map((p) => (
+                    {(prompts[lang] || prompts.en).map((p) => (
                       <button
                         key={p}
                         onClick={() => send(p)}
@@ -359,7 +340,7 @@ function Assistant() {
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask about a symptom, medicine, or condition…"
+                  placeholder={t("type_message")}
                   className="flex-1 h-11 px-4 rounded-full bg-white border border-border text-sm outline-none focus:border-medical-light focus:ring-4 focus:ring-medical-light/20 transition"
                 />
                 <button

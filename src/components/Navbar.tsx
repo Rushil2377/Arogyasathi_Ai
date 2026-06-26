@@ -4,13 +4,8 @@ import { useState, useEffect } from "react";
 import { Menu, X, Activity, LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import logo from "@/assets/logo.png";
-
-const navItems = [
-  { to: "/", label: "Home" },
-  { to: "/ai-health-assistant", label: "AI Assistant" },
-  { to: "/disease-detection", label: "Detection" },
-  { to: "/report-analysis", label: "Reports & Doctors" },
-];
+import { useTranslation } from "@/lib/translationContext";
+import LanguageSelector from "./LanguageSelector";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -18,6 +13,14 @@ export default function Navbar() {
   const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
   const { scrollY } = useScroll();
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { to: "/", label: t("home") },
+    { to: "/ai-health-assistant", label: t("ai_assistant") },
+    { to: "/disease-detection", label: t("detection") },
+    { to: "/report-analysis", label: t("reports_doctors") },
+  ];
 
   useMotionValueEvent(scrollY, "change", (v) => setScrolled(v > 24));
 
@@ -81,8 +84,8 @@ export default function Navbar() {
         scrolled ? "glass py-2" : "bg-transparent py-4"
       }`}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 group">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center justify-between gap-4">
+        <Link to="/" className="flex items-center gap-2 group shrink-0">
           <div className="relative">
             <img src={logo} alt="ArogyaSathi" className="h-9 w-9" width={36} height={36} />
             <span className="absolute inset-0 rounded-full animate-pulse-glow" />
@@ -90,7 +93,7 @@ export default function Navbar() {
           <div className="flex flex-col leading-none">
             <span className="font-display text-lg font-bold text-gradient">ArogyaSathi</span>
             <span className="text-[10px] tracking-[0.2em] text-medical-dark/70 font-semibold">
-              AI HEALTH
+              {t("ai_health")}
             </span>
           </div>
         </Link>
@@ -119,7 +122,9 @@ export default function Navbar() {
           })}
         </nav>
 
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-3">
+          <LanguageSelector />
+          
           {user ? (
             <>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full glass">
@@ -140,13 +145,13 @@ export default function Navbar() {
                 to="/login"
                 className="px-4 py-2 text-sm font-medium text-medical-dark hover:bg-medical-tint rounded-full transition"
               >
-                Login
+                {t("login")}
               </Link>
               <Link
                 to="/signup"
                 className="ripple px-5 py-2 text-sm font-semibold text-white gradient-medical rounded-full shadow-[var(--shadow-glow)] hover:shadow-[var(--shadow-elegant)] transition-all hover:-translate-y-0.5"
               >
-                Sign Up
+                {t("signup")}
               </Link>
             </>
           )}
@@ -165,44 +170,56 @@ export default function Navbar() {
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          className="lg:hidden glass mt-2 mx-4 rounded-2xl p-4 space-y-1"
+          className="lg:hidden glass mt-2 mx-4 rounded-2xl p-4 space-y-3"
         >
-          {navItems.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => setOpen(false)}
-              className="block px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-medical-tint"
-            >
-              {item.label}
-            </Link>
-          ))}
-          <div className="flex gap-2 pt-2 border-t border-border">
-            {user ? (
-              <button
-                onClick={logout}
-                className="flex-1 py-2 text-sm font-semibold text-medical-dark border border-medical-dark/20 rounded-xl"
+          <div className="space-y-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setOpen(false)}
+                className="block px-4 py-2.5 text-sm font-medium rounded-xl hover:bg-medical-tint"
               >
-                Log out ({user.name || user.email})
-              </button>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  onClick={() => setOpen(false)}
-                  className="flex-1 text-center py-2 text-sm font-semibold text-medical-dark border border-medical-dark/20 rounded-xl"
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-3 pt-3 border-t border-border">
+            <div className="flex justify-center">
+              <LanguageSelector />
+            </div>
+
+            <div className="flex gap-2">
+              {user ? (
+                <button
+                  onClick={() => {
+                    logout();
+                    setOpen(false);
+                  }}
+                  className="flex-1 py-2 text-sm font-semibold text-medical-dark border border-medical-dark/20 rounded-xl"
                 >
-                  Login
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={() => setOpen(false)}
-                  className="flex-1 text-center py-2 text-sm font-semibold text-white gradient-medical rounded-xl"
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
+                  {t("logout")} ({user.name || user.email})
+                </button>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={() => setOpen(false)}
+                    className="flex-1 text-center py-2 text-sm font-semibold text-medical-dark border border-medical-dark/20 rounded-xl"
+                  >
+                    {t("login")}
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setOpen(false)}
+                    className="flex-1 text-center py-2 text-sm font-semibold text-white gradient-medical rounded-xl"
+                  >
+                    {t("signup")}
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </motion.div>
       )}
