@@ -697,53 +697,7 @@ function Detection() {
                       )}
                     </div>
 
-                    {/* Likelihood Distributions (Vit output bars) */}
-                    {result.allProbabilities && Object.keys(result.allProbabilities).length > 0 && (
-                      <div className="bg-white/40 p-5 rounded-2xl border border-border shadow-sm">
-                        <h4 className="flex items-center gap-2 font-semibold text-medical-dark text-sm mb-4">
-                          <TrendingUp className="h-4 w-4 text-medical-light" /> {t("likelihood_dist")}
-                        </h4>
-                        <div className="space-y-3.5">
-                          {Object.entries(result.allProbabilities)
-                            .sort(([, a], [, b]) => b - a)
-                            .map(([label, probability]) => {
-                              let chanceText = t("low_chance");
-                              let chanceColor = "text-muted-foreground font-medium";
-                              let barWidth = "15%";
-                              let barColor = "bg-slate-300";
-
-                              if (probability >= 0.6) {
-                                chanceText = t("high_chance");
-                                chanceColor = "text-rose-600 font-bold";
-                                barWidth = "90%";
-                                barColor = "bg-rose-500";
-                              } else if (probability >= 0.25) {
-                                chanceText = t("moderate_chance");
-                                chanceColor = "text-amber-600 font-semibold";
-                                barWidth = "55%";
-                                barColor = "bg-amber-500";
-                              }
-
-                              return (
-                                <div key={label} className="space-y-1">
-                                  <div className="flex justify-between text-xs text-medical-dark">
-                                    <span className="font-semibold">{getTranslatedDiseaseName(label, t)}</span>
-                                    <span className={chanceColor}>{chanceText}</span>
-                                  </div>
-                                  <div className="h-2 rounded-full bg-white border border-border overflow-hidden">
-                                    <motion.div
-                                      initial={{ width: 0 }}
-                                      animate={{ width: barWidth }}
-                                      transition={{ duration: 1.2 }}
-                                      className={`h-full ${barColor}`}
-                                    />
-                                  </div>
-                                </div>
-                              );
-                            })}
-                        </div>
-                      </div>
-                    )}
+                   
 
                     {/* Guidelines and Symptoms */}
                     <div className="grid sm:grid-cols-2 gap-5 pt-2">

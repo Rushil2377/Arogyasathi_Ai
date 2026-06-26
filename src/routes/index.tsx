@@ -142,7 +142,7 @@ function Home() {
               animate={{ opacity: 1, y: 0 }}
               className="inline-flex items-center gap-2 glass rounded-full px-3 py-1.5 text-xs font-semibold text-medical-dark"
             >
-              <Sparkles className="h-3.5 w-3.5 text-medical-light animate-pulse-glow" />
+              
               {t("hero_pill")}
             </motion.div>
             <motion.h1
