@@ -24,6 +24,7 @@ import { storage, KEYS } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import HospitalMap from "@/components/HospitalMap";
+import { useTranslation } from "@/lib/translationContext";
 
 export const Route = createFileRoute("/report-analysis")({
   beforeLoad: async () => {
@@ -116,6 +117,7 @@ const statusBadge: Record<string, string> = {
 };
 
 function ReportsAndDoctors() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [reports, setReports] = useState<ReportRecord[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
@@ -472,10 +474,10 @@ Recommendations: ${recommendationsText}`;
               </div>
               <div>
                 <h1 className="font-display text-2xl font-bold text-medical-dark">
-                  Reports & Expert Consultation
+                  {t("report_title")}
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  Upload medical reports → AI summary → connect with the right specialist.
+                  {t("report_subtitle")}
                 </p>
               </div>
             </div>
@@ -506,16 +508,16 @@ Recommendations: ${recommendationsText}`;
                     <Upload className="h-9 w-9 text-medical-dark" />
                   </motion.div>
                   <h3 className="font-display text-lg font-bold text-medical-dark">
-                    Upload a medical report
+                    {t("drag_drop_report")}
                   </h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    PDF, DOCX, JPG, PNG — analyzed locally on your device
+                    {t("upload_report_desc")}
                   </p>
                   <button
                     onClick={() => inputRef.current?.click()}
                     className="ripple mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-full gradient-medical text-white font-semibold shadow-[var(--shadow-glow)] hover:-translate-y-0.5 transition"
                   >
-                    <FileCheck className="h-4 w-4" /> Choose file
+                    <FileCheck className="h-4 w-4" /> {t("choose_file")}
                   </button>
                   <input
                     ref={inputRef}
@@ -534,7 +536,7 @@ Recommendations: ${recommendationsText}`;
                         className="inline-flex h-12 w-12 rounded-full border-2 border-medical-light border-t-transparent"
                       />
                       <div className="mt-3 text-sm font-semibold text-medical-dark">
-                        Analyzing report with AI…
+                        {t("analyzing_report")}
                       </div>
                     </div>
                   </div>
@@ -563,7 +565,7 @@ Recommendations: ${recommendationsText}`;
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-bold border ${riskColor[r.riskLevel]}`}
                       >
-                        Risk: {r.riskLevel}
+                        {t("risk_label")}: {r.riskLevel}
                       </span>
                     </div>
                     <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
@@ -572,7 +574,7 @@ Recommendations: ${recommendationsText}`;
 
                     <div className="mt-5">
                       <h4 className="text-xs font-bold tracking-widest text-medical-light uppercase mb-2.5">
-                        Findings
+                        {t("findings_title")}
                       </h4>
                       <div className="grid sm:grid-cols-2 gap-2">
                         {r.findings.map((f) => (
@@ -589,7 +591,7 @@ Recommendations: ${recommendationsText}`;
                             <span
                               className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${statusBadge[f.status]}`}
                             >
-                              {f.status}
+                              {t("status_" + f.status)}
                             </span>
                           </div>
                         ))}
@@ -598,7 +600,7 @@ Recommendations: ${recommendationsText}`;
 
                     <div className="mt-5">
                       <h4 className="text-xs font-bold tracking-widest text-medical-light uppercase mb-2.5">
-                        Recommendations
+                        {t("recommendations_title")}
                       </h4>
                       <ul className="space-y-1.5">
                         {r.recommendations.map((rec) => (
@@ -616,7 +618,7 @@ Recommendations: ${recommendationsText}`;
                         className="inline-flex items-center gap-1.5 text-xs font-semibold text-medical-light hover:text-medical-dark transition cursor-pointer"
                       >
                         <Brain className="h-3.5 w-3.5" />
-                        Discuss report with AI Health Assistant &rarr;
+                        {t("discuss_ai_assistant")}
                       </button>
                     </div>
                   </motion.div>
@@ -628,7 +630,7 @@ Recommendations: ${recommendationsText}`;
                   onClick={clearAll}
                   className="text-xs text-medical-dark/60 hover:text-medical-dark flex items-center gap-1"
                 >
-                  <Trash2 className="h-3 w-3" /> Clear all reports
+                  <Trash2 className="h-3 w-3" /> {t("clear_all_reports")}
                 </button>
               )}
             </div>
@@ -645,22 +647,22 @@ Recommendations: ${recommendationsText}`;
                     <div className="flex items-center gap-2 mb-1">
                       <Brain className="h-4 w-4" />
                       <div className="text-xs font-bold tracking-widest uppercase">
-                        AI Conclusive Report
+                        {t("ai_conclusive_report")}
                       </div>
                     </div>
-                    <h3 className="font-display text-xl font-bold">Patient health summary</h3>
+                    <h3 className="font-display text-xl font-bold">{t("patient_health_summary")}</h3>
                     <p className="mt-2 text-sm text-white/85">
-                      Based on <strong>{consolidated.total} reports</strong> stored on this device.
+                      {t("based_on_reports_prefix")} <strong>{consolidated.total}</strong> {t("based_on_reports_suffix")}
                     </p>
 
                     <div className="mt-5 space-y-4">
-                      <Block icon={Activity} title="Overall status">
+                      <Block icon={Activity} title={t("overall_status")}>
                         {consolidated.overall}
                       </Block>
-                      <Block icon={TrendingUp} title="Health trend">
+                      <Block icon={TrendingUp} title={t("health_trend")}>
                         {consolidated.trend}
                       </Block>
-                      <Block icon={AlertTriangle} title="Major concerns">
+                      <Block icon={AlertTriangle} title={t("major_concerns")}>
                         <div className="flex flex-wrap gap-1.5">
                           {consolidated.concerns.length === 0
                             ? "None"
@@ -674,12 +676,10 @@ Recommendations: ${recommendationsText}`;
                               ))}
                         </div>
                       </Block>
-                      <Block icon={Sparkles} title="Suggested next step">
-                        Book a{" "}
+                      <Block icon={Sparkles} title={t("suggested_next_step")}>
                         {consolidated.overall === "Needs attention"
-                          ? "specialist"
-                          : "general physician"}{" "}
-                        consult within 7 days.
+                          ? t("next_step_desc_specialist")
+                          : t("next_step_desc_physician")}
                       </Block>
                     </div>
                   </motion.div>
@@ -695,24 +695,24 @@ Recommendations: ${recommendationsText}`;
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="h-4 w-4 text-medical-light" />
                   <div className="text-xs font-bold tracking-widest text-medical-light uppercase">
-                    AI Patient Summary
+                    {t("ai_patient_summary")}
                   </div>
                 </div>
                 <h3 className="font-display text-xl font-bold text-medical-dark">
-                  Doctor-ready briefing
+                  {t("doctor_ready_briefing")}
                 </h3>
                 <div className="mt-5 grid md:grid-cols-3 gap-4 text-sm">
                   <div className="p-4 rounded-2xl bg-white border border-border">
                     <div className="text-xs font-bold text-medical-light uppercase tracking-wider mb-2">
-                      Symptoms reported
+                      {t("symptoms_reported")}
                     </div>
                     <p className="text-muted-foreground">
-                      Fatigue, occasional headaches, mild joint pain over past 2 weeks.
+                      {t("symptoms_reported_desc")}
                     </p>
                   </div>
                   <div className="p-4 rounded-2xl bg-white border border-border">
                     <div className="text-xs font-bold text-medical-light uppercase tracking-wider mb-2">
-                      Report findings
+                      {t("report_findings")}
                     </div>
                     <p className="text-muted-foreground">
                       {reports
@@ -720,19 +720,19 @@ Recommendations: ${recommendationsText}`;
                           r.findings.filter((f) => f.status === "abnormal").map((f) => f.label),
                         )
                         .slice(0, 4)
-                        .join(", ") || "All values within range."}
+                        .join(", ") || t("all_values_normal")}
                     </p>
                   </div>
                   <div className="p-4 rounded-2xl bg-white border border-border">
                     <div className="text-xs font-bold text-medical-light uppercase tracking-wider mb-2">
-                      Risk assessment
+                      {t("risk_assessment")}
                     </div>
                     <p className="text-muted-foreground">
                       {reports.find((r) => r.riskLevel === "High")
-                        ? "High — schedule urgent consult."
+                        ? t("risk_high_desc")
                         : reports.find((r) => r.riskLevel === "Moderate")
-                          ? "Moderate — review within a week."
-                          : "Low — routine follow-up."}
+                          ? t("risk_moderate_desc")
+                          : t("risk_low_desc")}
                     </p>
                   </div>
                 </div>
@@ -747,7 +747,7 @@ Recommendations: ${recommendationsText}`;
                 <div className="flex items-center gap-3">
                   <MapPin className="h-5 w-5 text-medical-light" />
                   <h2 className="font-display text-2xl font-bold text-medical-dark">
-                    Nearby hospitals
+                    {t("nearby_hospitals_section")}
                   </h2>
                 </div>
 
@@ -756,7 +756,7 @@ Recommendations: ${recommendationsText}`;
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="Search city/area..."
+                      placeholder={t("search_location")}
                       value={locationSearch}
                       onChange={(e) => setLocationSearch(e.target.value)}
                       className="pl-8 pr-3 py-1.5 text-xs rounded-full border border-border bg-card outline-none focus:border-medical-light w-44 transition-all"
@@ -769,10 +769,10 @@ Recommendations: ${recommendationsText}`;
                     onChange={(e) => setSearchRadius(Number(e.target.value))}
                     className="px-3 py-1.5 text-xs rounded-full border border-border bg-card outline-none focus:border-medical-light transition-all"
                   >
-                    <option value={2000}>2 km radius</option>
-                    <option value={5000}>5 km radius</option>
-                    <option value={10000}>10 km radius</option>
-                    <option value={20000}>20 km radius</option>
+                    <option value={2000}>2 {t("km")} {t("radius")}</option>
+                    <option value={5000}>5 {t("km")} {t("radius")}</option>
+                    <option value={10000}>10 {t("km")} {t("radius")}</option>
+                    <option value={20000}>20 {t("km")} {t("radius")}</option>
                   </select>
 
                   <button
@@ -780,7 +780,7 @@ Recommendations: ${recommendationsText}`;
                     onClick={getCurrentLocation}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full gradient-medical text-white shadow-sm hover:opacity-95 transition cursor-pointer"
                   >
-                    <Navigation className="h-3 w-3" /> GPS Location
+                    <Navigation className="h-3 w-3" /> {t("use_current_loc")}
                   </button>
                 </form>
               </div>
@@ -788,7 +788,7 @@ Recommendations: ${recommendationsText}`;
 
             {userLocation && (
               <div className="text-xs text-muted-foreground mb-4">
-                Showing results near:{" "}
+                {t("showing_results_near")}{" "}
                 <span className="font-semibold text-medical-dark">{userLocation.name}</span> (
                 {userLocation.lat.toFixed(4)}, {userLocation.lon.toFixed(4)})
               </div>
@@ -830,7 +830,7 @@ Recommendations: ${recommendationsText}`;
                           <div>
                             <h4 className="font-semibold text-medical-dark text-sm">{h.name}</h4>
                             <div className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
-                              <Navigation className="h-3 w-3" /> {h.distance} away
+                              <Navigation className="h-3 w-3" /> {h.distance} {t("away")}
                             </div>
                             {h.website && (
                               <div className="flex flex-wrap gap-2 mt-1.5">
@@ -862,7 +862,7 @@ Recommendations: ${recommendationsText}`;
                   ))
                 ) : (
                   <div className="text-center p-8 glass rounded-2xl text-muted-foreground text-sm">
-                    No results to display.
+                    {t("no_hospitals_found")}
                   </div>
                 )}
               </div>

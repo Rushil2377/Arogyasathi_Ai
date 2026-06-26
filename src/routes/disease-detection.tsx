@@ -20,6 +20,7 @@ import { storage, KEYS } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import { predictSkinDisease, checkBackendHealth } from "@/lib/skinDetection";
 import { explainSkinDisease, validateSkinImage, refineSkinPrediction } from "@/lib/gemini";
+import { useTranslation } from "@/lib/translationContext";
 
 export const Route = createFileRoute("/disease-detection")({
   beforeLoad: async () => {
@@ -46,12 +47,6 @@ type Detection = {
   allProbabilities?: Record<string, number>;
   scanType: "skin";
 };
-
-const langs = [
-  { code: "en", label: "English" },
-  { code: "hi", label: "हिन्दी" },
-  { code: "gu", label: "ગુજરાતી" },
-];
 
 const STATIC_GUIDELINES: Record<string, { symptoms: string[]; precautions: string[] }> = {
   "Normal": {
@@ -105,35 +100,41 @@ const STATIC_GUIDELINES: Record<string, { symptoms: string[]; precautions: strin
   }
 };
 
-function GetSeverityBadge(disease: string) {
+function GetSeverityBadge(disease: string, t: (key: string) => string) {
   const highRisk = ["Melanoma", "Basal Cell Carcinoma"];
   const moderateRisk = ["Eczema", "Psoriasis", "Fungal Infections", "Dermatitis"];
 
   if (highRisk.includes(disease)) {
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20">
-        <AlertTriangle className="h-3.5 w-3.5" /> High Risk - Consult Doctor
+        <AlertTriangle className="h-3.5 w-3.5" /> {t("high_risk_badge")}
       </span>
     );
   } else if (moderateRisk.includes(disease)) {
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">
-        <AlertCircle className="h-3.5 w-3.5" /> Moderate - Treatable
+        <AlertCircle className="h-3.5 w-3.5" /> {t("moderate_risk_badge")}
       </span>
     );
   } else if (disease === "Inconclusive Result") {
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-500/10 text-slate-600 border border-slate-500/20">
-        <AlertCircle className="h-3.5 w-3.5" /> Inconclusive
+        <AlertCircle className="h-3.5 w-3.5" /> {t("inconclusive_badge")}
       </span>
     );
   } else {
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-        <ShieldCheck className="h-3.5 w-3.5" /> Mild / Common
+        <ShieldCheck className="h-3.5 w-3.5" /> {t("mild_badge")}
       </span>
     );
   }
+}
+
+function getTranslatedDiseaseName(disease: string, t: (key: string) => string): string {
+  const key = disease.toLowerCase().replace(/\s+/g, "_");
+  const translated = t(key);
+  return translated === key ? disease : translated;
 }
 
 function FormatExplanation({ text }: { text: string }) {
@@ -243,7 +244,14 @@ function Detection() {
   const [history, setHistory] = useState<Detection[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [lang, setLang] = useState("en");
+  const { language: lang, t } = useTranslation();
+
+  // Reset local result explanation when global language changes to force regeneration
+  useEffect(() => {
+    if (result) {
+      setResult((prev) => (prev ? { ...prev, explanation: undefined } : null));
+    }
+  }, [lang]);
   const [backendDown, setBackendDown] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -463,10 +471,7 @@ function Detection() {
     [userId],
   );
 
-  const handleLangChange = (newLang: string) => {
-    setLang(newLang);
-    setResult((prev) => (prev ? { ...prev, explanation: undefined } : null));
-  };
+
 
   const clearHistory = async () => {
     setHistory([]);
@@ -494,10 +499,10 @@ function Detection() {
                 </div>
                 <div>
                   <h1 className="font-display text-2xl font-bold text-medical-dark">
-                    AI Skin Disease Screening
+                    {t("skin_title")}
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                    Upload an image for automated dermatological classification and guidelines.
+                    {t("skin_subtitle")}
                   </p>
                 </div>
               </div>
@@ -561,16 +566,16 @@ function Detection() {
                       <Upload className="h-9 w-9 text-medical-dark" />
                     </motion.div>
                     <h3 className="font-display text-lg font-bold text-medical-dark">
-                      Drag & drop skin patch image
+                      {t("drag_drop_skin")}
                     </h3>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Upload a clear closeup photo of the skin lesion or patch (JPG, PNG up to 10MB)
+                      {t("upload_skin_desc")}
                     </p>
                     <button
                       onClick={() => inputRef.current?.click()}
                       className="ripple mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-full gradient-medical text-white font-semibold shadow-[var(--shadow-glow)] hover:-translate-y-0.5 transition"
                     >
-                      <ImageIcon className="h-4 w-4" /> Choose image
+                      <ImageIcon className="h-4 w-4" /> {t("choose_image")}
                     </button>
                     <input
                       ref={inputRef}
@@ -598,7 +603,7 @@ function Detection() {
                               className="inline-flex h-12 w-12 rounded-full border-2 border-white border-t-transparent"
                             />
                             <div className="mt-3 text-sm font-semibold">
-                              Analyzing Dermatological Patch…
+                              {t("analyzing_patch")}
                             </div>
                           </div>
                         </div>
@@ -611,7 +616,7 @@ function Detection() {
                       }}
                       className="mt-3 text-xs text-medical-dark/70 hover:text-medical-dark"
                     >
-                      Upload another image
+                      {t("upload_another")}
                     </button>
                   </div>
                 )}
@@ -629,13 +634,13 @@ function Detection() {
                     <div className="flex items-start justify-between gap-3 flex-wrap border-b border-border pb-4">
                       <div>
                         <div className="text-xs font-bold tracking-widest text-medical-light uppercase mb-1.5">
-                          Screening result
+                          {t("screening_result")}
                         </div>
                         <div className="flex items-center gap-3 flex-wrap">
                           <h3 className="font-display text-2xl font-bold text-medical-dark">
-                            {result.disease}
+                            {getTranslatedDiseaseName(result.disease, t)}
                           </h3>
-                          {GetSeverityBadge(result.disease)}
+                          {GetSeverityBadge(result.disease, t)}
                         </div>
                         <p className={`mt-2.5 text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-xl border inline-flex items-center gap-1.5 ${result.disease === "Normal"
                           ? "text-emerald-600 bg-emerald-500/5 border-emerald-500/10"
@@ -644,16 +649,16 @@ function Detection() {
                             : "text-rose-600 bg-rose-500/5 border-rose-500/10"
                           }`}>
                           {result.disease === "Normal"
-                            ? "✓ Based on the analysis, your skin has a high probability of being healthy."
+                            ? t("normal_desc")
                             : result.disease === "Inconclusive Result"
-                              ? "⚠️ The screening is inconclusive. Please re-take the photo or consult a doctor."
-                              : "⚠️ This condition has a high chance of being present based on the image analysis."}
+                              ? t("inconclusive_desc")
+                              : t("disease_desc")}
                         </p>
                       </div>
                       <div className="text-right">
-                        <div className="text-xs text-muted-foreground">AI Assessment</div>
+                        <div className="text-xs text-muted-foreground">{t("ai_assessment")}</div>
                         <div className="font-display text-lg font-bold text-gradient">
-                          {result.disease === "Inconclusive Result" ? "Inconclusive" : "High Probability"}
+                          {result.disease === "Inconclusive Result" ? t("inconclusive") : t("high_probability")}
                         </div>
                       </div>
                     </div>
@@ -662,10 +667,10 @@ function Detection() {
                     {["Melanoma", "Basal Cell Carcinoma"].includes(result.disease) && (
                       <div className="p-5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-700 text-xs sm:text-sm space-y-2">
                         <strong className="font-bold flex items-center gap-1.5 text-rose-800 text-sm sm:text-base">
-                          <AlertTriangle className="h-4 w-4 shrink-0" /> URGENT: Dermatologist Referral Recommended
+                          <AlertTriangle className="h-4 w-4 shrink-0" /> {t("urgent_referral")}
                         </strong>
                         <p className="leading-relaxed">
-                          This screening has flagged indicators matching high-risk lesions (like Melanoma or Basal Cell Carcinoma). We strongly recommend scheduling an in-person clinical evaluation with a certified dermatologist immediately for a formal biopsy and examination.
+                          {t("urgent_referral_desc")}
                         </p>
                       </div>
                     )}
@@ -674,37 +679,21 @@ function Detection() {
                     <div className="border-t border-border pt-3 space-y-3">
                       <div className="flex items-center justify-between">
                         <h4 className="flex items-center gap-2 font-semibold text-medical-dark text-sm">
-                          <Sparkles className="h-4 w-4 text-medical-light animate-pulse-glow" /> AI Condition Explanation
+                          {t("ai_explanation")}
                         </h4>
-
-                        {/* Language Selector */}
-                        <div className="flex gap-1 border border-border rounded-lg p-0.5 bg-white/60 text-[10px]">
-                          {langs.map((l) => (
-                            <button
-                              key={l.code}
-                              onClick={() => handleLangChange(l.code)}
-                              className={`px-2 py-0.5 rounded-md font-medium transition ${lang === l.code
-                                ? "bg-medical-dark text-white shadow-sm"
-                                : "text-muted-foreground hover:text-medical-dark"
-                                }`}
-                            >
-                              {l.label}
-                            </button>
-                          ))}
-                        </div>
                       </div>
 
                       {explaining ? (
                         <div className="py-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2.5">
                           <div className="h-5 w-5 border-2 border-medical-light border-t-transparent rounded-full animate-spin" />
-                          <span>Analyzing skin condition and retrieving AI insights in {langs.find((l) => l.code === lang)?.label}…</span>
+                          <span>{t("generating_explanation")}</span>
                         </div>
                       ) : result.explanation ? (
                         <div className="bg-white/60 p-6 sm:p-8 rounded-2xl border border-border shadow-sm">
                           <FormatExplanation text={result.explanation} />
                         </div>
                       ) : (
-                        <p className="text-xs text-muted-foreground italic">Failed to generate explanation. Choose language to retry.</p>
+                        <p className="text-xs text-muted-foreground italic">{t("failed_explanation")}</p>
                       )}
                     </div>
 
@@ -712,24 +701,24 @@ function Detection() {
                     {result.allProbabilities && Object.keys(result.allProbabilities).length > 0 && (
                       <div className="bg-white/40 p-5 rounded-2xl border border-border shadow-sm">
                         <h4 className="flex items-center gap-2 font-semibold text-medical-dark text-sm mb-4">
-                          <TrendingUp className="h-4 w-4 text-medical-light" /> Likelihood Distribution (Top Conditions)
+                          <TrendingUp className="h-4 w-4 text-medical-light" /> {t("likelihood_dist")}
                         </h4>
                         <div className="space-y-3.5">
                           {Object.entries(result.allProbabilities)
                             .sort(([, a], [, b]) => b - a)
                             .map(([label, probability]) => {
-                              let chanceText = "Low Chance";
+                              let chanceText = t("low_chance");
                               let chanceColor = "text-muted-foreground font-medium";
                               let barWidth = "15%";
                               let barColor = "bg-slate-300";
 
                               if (probability >= 0.6) {
-                                chanceText = "High Chance of Presence";
+                                chanceText = t("high_chance");
                                 chanceColor = "text-rose-600 font-bold";
                                 barWidth = "90%";
                                 barColor = "bg-rose-500";
                               } else if (probability >= 0.25) {
-                                chanceText = "Moderate Chance";
+                                chanceText = t("moderate_chance");
                                 chanceColor = "text-amber-600 font-semibold";
                                 barWidth = "55%";
                                 barColor = "bg-amber-500";
@@ -738,7 +727,7 @@ function Detection() {
                               return (
                                 <div key={label} className="space-y-1">
                                   <div className="flex justify-between text-xs text-medical-dark">
-                                    <span className="font-semibold">{label}</span>
+                                    <span className="font-semibold">{getTranslatedDiseaseName(label, t)}</span>
                                     <span className={chanceColor}>{chanceText}</span>
                                   </div>
                                   <div className="h-2 rounded-full bg-white border border-border overflow-hidden">
@@ -760,7 +749,7 @@ function Detection() {
                     <div className="grid sm:grid-cols-2 gap-5 pt-2">
                       <div>
                         <h4 className="flex items-center gap-2 font-semibold text-medical-dark text-sm mb-3">
-                          <AlertCircle className="h-4 w-4 text-medical-light" /> Symptoms
+                          <AlertCircle className="h-4 w-4 text-medical-light" /> {t("symptoms")}
                         </h4>
                         <ul className="space-y-2">
                           {result.symptoms.map((s) => (
@@ -773,7 +762,7 @@ function Detection() {
                       </div>
                       <div>
                         <h4 className="flex items-center gap-2 font-semibold text-medical-dark text-sm mb-3">
-                          <ShieldCheck className="h-4 w-4 text-medical-light" /> Recommended precautions
+                          <ShieldCheck className="h-4 w-4 text-medical-light" /> {t("precautions")}
                         </h4>
                         <ul className="space-y-2">
                           {result.precautions.map((s) => (
@@ -800,7 +789,7 @@ function Detection() {
               <div className="glass rounded-3xl p-6 sticky top-28">
                 <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
                   <h3 className="font-display font-bold text-medical-dark flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-medical-light" /> Screening history
+                    <Clock className="h-4 w-4 text-medical-light" /> {t("screening_history")}
                   </h3>
                   {history.length > 0 && (
                     <button
@@ -808,13 +797,13 @@ function Detection() {
                       className="text-xs text-medical-dark/60 hover:text-medical-dark flex items-center gap-1"
                     >
                       <Trash2 className="h-3 w-3" />
-                      Clear
+                      {t("clear")}
                     </button>
                   )}
                 </div>
                 {history.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    No past screenings yet.
+                    {t("no_past_screenings")}
                   </p>
                 ) : (
                   <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
@@ -835,7 +824,7 @@ function Detection() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-1">
                             <span className="text-sm font-semibold text-medical-dark truncate">
-                              {h.disease}
+                              {getTranslatedDiseaseName(h.disease, t)}
                             </span>
                             <span className="text-[10px] text-muted-foreground shrink-0 uppercase tracking-widest font-bold font-display">
                               🧴 Skin
@@ -846,7 +835,7 @@ function Detection() {
                           </div>
                           <div className={`mt-1.5 inline-block text-[10px] px-2 py-0.5 rounded-full font-bold text-white ${h.confidence >= 60 ? "bg-rose-500" : h.confidence >= 25 ? "bg-amber-500" : "bg-slate-400"
                             }`}>
-                            {h.confidence >= 60 ? "High Chance" : h.confidence >= 25 ? "Mod. Chance" : "Low Chance"}
+                            {h.confidence >= 60 ? t("high_chance") : h.confidence >= 25 ? t("moderate_chance") : t("low_chance")}
                           </div>
                         </div>
                       </motion.div>

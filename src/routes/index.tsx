@@ -24,6 +24,7 @@ import {
 import PageShell from "@/components/PageShell";
 import Reveal, { Counter } from "@/components/Reveal";
 import { supabase } from "@/lib/supabase";
+import { useTranslation } from "@/lib/translationContext";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -39,75 +40,76 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const features = [
-  {
-    icon: Bot,
-    title: "AI Health Assistant",
-    desc: "Symptom analysis & 24×7 guidance in your language.",
-    points: ["Symptom analysis", "Healthcare guidance", "24×7 support"],
-    to: "/ai-health-assistant",
-  },
-  {
-    icon: ScanLine,
-    title: "Disease Detection",
-    desc: "Upload an image, get an AI-powered prediction in seconds.",
-    points: ["Skin disease detection", "AI-powered analysis", "Instant prediction"],
-    to: "/disease-detection",
-  },
-  {
-    icon: FileText,
-    title: "Medical Report Analyzer",
-    desc: "Turn complex lab reports into plain-language insights.",
-    points: ["Simplified explanations", "Abnormal value detection", "Risk insights"],
-    to: "/report-analysis",
-  },
-  {
-    icon: Stethoscope,
-    title: "Nearby Hospitals",
-    desc: "Connect to nearby hospitals and doctors with AI-prepared summary.",
-    points: ["Variable distance search", "City wise search", "One-click navigation"],
-    to: "/report-analysis",
-  },
-];
-
-const innovations = [
-  {
-    icon: Languages,
-    title: "Multilingual Support",
-    desc: "English, Hindi, Gujarati — speak naturally in your language.",
-  },
-  {
-    icon: BrainCircuit,
-    title: "AI Disease Detection",
-    desc: "Vision models trained on medical imaging for instant predictions.",
-  },
-  {
-    icon: Mic,
-    title: "Text Interaction",
-    desc: "type — accessible for elderly and low-literacy users.",
-  },
-  {
-    icon: FileText,
-    title: "Report Summarization",
-    desc: "Turn 10-page lab reports into a 1-paragraph summary.",
-  },
-  {
-    icon: Stethoscope,
-    title: "Nearby Hospitals",
-    desc: "Get connected to nearby hospitals",
-  },
-];
-
-const roadmap = [
-  { phase: "Phase 1", title: "Live Sessions With Doctors" },
-  { phase: "Phase 2", title: "Speech Recognisation" },
-  { phase: "Phase 3", title: "Hospital Links" },
-  { phase: "Phase 4", title: "Show Government schemes" },
-  { phase: "Phase 5", title: "Recommend Doctors and Specialists" },
-];
-
 function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { language, t } = useTranslation();
+
+  const features = [
+    {
+      icon: Bot,
+      title: t("ai_assistant_title"),
+      desc: t("ai_assistant_desc"),
+      points: [t("ai_assistant_p1"), t("ai_assistant_p2"), t("ai_assistant_p3")],
+      to: "/ai-health-assistant",
+    },
+    {
+      icon: ScanLine,
+      title: t("disease_detection_title"),
+      desc: t("disease_detection_desc"),
+      points: [t("disease_detection_p1"), t("disease_detection_p2"), t("disease_detection_p3")],
+      to: "/disease-detection",
+    },
+    {
+      icon: FileText,
+      title: t("report_analyzer_title"),
+      desc: t("report_analyzer_desc"),
+      points: [t("report_analyzer_p1"), t("report_analyzer_p2"), t("report_analyzer_p3")],
+      to: "/report-analysis",
+    },
+    {
+      icon: Stethoscope,
+      title: t("nearby_hospitals_title"),
+      desc: t("nearby_hospitals_desc"),
+      points: [t("nearby_hospitals_p1"), t("nearby_hospitals_p2"), t("nearby_hospitals_p3")],
+      to: "/report-analysis",
+    },
+  ];
+
+  const innovations = [
+    {
+      icon: Languages,
+      title: language === "hi" ? "बहुभाषी सहायता" : language === "gu" ? "બહુભાષી સપોર્ટ" : "Multilingual Support",
+      desc: language === "hi" ? "अंग्रेजी, हिंदी, गुजराती — अपनी भाषा में बात करें।" : language === "gu" ? "અંગ્રેજી, હિન્દી, ગુજરાતી — તમારી ભાષામાં વાત કરો." : "English, Hindi, Gujarati — speak naturally in your language.",
+    },
+    {
+      icon: BrainCircuit,
+      title: language === "hi" ? "एआई रोग पहचान" : language === "gu" ? "એઆઈ રોગ ઓળખ" : "AI Disease Detection",
+      desc: language === "hi" ? "त्वरित परिणामों के लिए मेडिकल इमेजिंग पर प्रशिक्षित विज़न मॉडल।" : language === "gu" ? "ત્વરિત પરિણામો માટે મેડિકલ ઇમેજિંગ પર તાલીમ પામેલ વિઝન મોડલ્સ." : "Vision models trained on medical imaging for instant predictions.",
+    },
+    {
+      icon: Mic,
+      title: language === "hi" ? "आवाज पहचान" : language === "gu" ? "અવાજ ઓળખ" : "Easy Interaction",
+      desc: language === "hi" ? "टाइप करें — बुजुर्गों और कम साक्षरता वाले उपयोगकर्ताओं के लिए सुलभ।" : language === "gu" ? "ટાઇપ કરો — વૃદ્ધો અને ઓછી સાક્ષરતાવાળા વપરાશકર્તાઓ માટે સગવડ." : "type — accessible for elderly and low-literacy users.",
+    },
+    {
+      icon: FileText,
+      title: language === "hi" ? "रिपोर्ट सारांश" : language === "gu" ? "રિપોર્ટ સારાંશ" : "Report Summarization",
+      desc: language === "hi" ? "जटिल 10-पेज की लैब रिपोर्ट को 1-पैराग्राफ सारांश में बदलें।" : language === "gu" ? "જટિલ 10-પેજની લેબ રિપોર્ટને 1-પેરેગ્રાફ સારાંશમાં ફેરવો." : "Turn 10-page lab reports into a 1-paragraph summary.",
+    },
+    {
+      icon: Stethoscope,
+      title: language === "hi" ? "नजदीकी अस्पताल" : language === "gu" ? "નજીકની હોસ્પિટલો" : "Nearby Hospitals",
+      desc: language === "hi" ? "नजदीकी अस्पतालों और डॉक्टरों से जुड़ें" : language === "gu" ? "નજીકની હોસ્પિટલો અને ક્લિનિક્સ સાથે જોડાઓ" : "Get connected to nearby hospitals",
+    },
+  ];
+
+  const roadmap = [
+    { phase: language === "hi" ? "चरण 1" : language === "gu" ? "તબક્કો 1" : "Phase 1", title: t("roadmap_phase1") },
+    { phase: language === "hi" ? "चरण 2" : language === "gu" ? "તબક્કો 2" : "Phase 2", title: t("roadmap_phase2") },
+    { phase: language === "hi" ? "चरण 3" : language === "gu" ? "તબક્કો 3" : "Phase 3", title: t("roadmap_phase3") },
+    { phase: language === "hi" ? "चरण 4" : language === "gu" ? "તબક્કો 4" : "Phase 4", title: t("roadmap_phase4") },
+    { phase: language === "hi" ? "चरण 5" : language === "gu" ? "તબક્કો 5" : "Phase 5", title: t("roadmap_phase5") },
+  ];
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -140,8 +142,8 @@ function Home() {
               animate={{ opacity: 1, y: 0 }}
               className="inline-flex items-center gap-2 glass rounded-full px-3 py-1.5 text-xs font-semibold text-medical-dark"
             >
-              <Sparkles className="h-3.5 w-3.5 text-medical-light" />
-              AI Healthcare • Built for rural India
+              <Sparkles className="h-3.5 w-3.5 text-medical-light animate-pulse-glow" />
+              {t("hero_pill")}
             </motion.div>
             <motion.h1
               initial={{ opacity: 0, y: 16 }}
@@ -151,9 +153,9 @@ function Home() {
             >
               <span className="text-gradient">ArogyaSathi AI</span>
               <br />
-              <span className="text-medical-dark">Your smart healthcare</span>
+              <span className="text-medical-dark">{t("hero_title_1")}</span>
               <br />
-              <span className="text-medical-dark/80">companion.</span>
+              <span className="text-medical-dark/80">{t("hero_title_2")}</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 16 }}
@@ -161,8 +163,7 @@ function Home() {
               transition={{ delay: 0.1 }}
               className="mt-5 text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed"
             >
-              AI-powered healthcare assistance available 24×7 for symptom guidance, disease
-              detection, medical report understanding, and expert consultation.
+              {t("hero_desc")}
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -171,16 +172,16 @@ function Home() {
               className="mt-7 flex flex-wrap gap-3"
             >
               <Link
-                to="/signup"
+                to={isLoggedIn ? "/ai-health-assistant" : "/signup"}
                 className="ripple inline-flex items-center gap-2 px-6 py-3 rounded-full gradient-medical text-white font-semibold shadow-[var(--shadow-glow)] hover:-translate-y-0.5 transition"
               >
-                Get Started <ArrowRight className="h-4 w-4" />
+                {t("get_started")} <ArrowRight className="h-4 w-4" />
               </Link>
               <a
                 href="#features"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full glass font-semibold text-medical-dark hover:bg-white transition"
               >
-                Explore Features
+                {language === "hi" ? "सुविधाएं देखें" : language === "gu" ? "સુવિધાઓ જુઓ" : "Explore Features"}
               </a>
             </motion.div>
           </div>
@@ -204,29 +205,47 @@ function Home() {
         <div className="mx-auto max-w-7xl">
           <Reveal className="text-center max-w-2xl mx-auto">
             <span className="text-xs font-bold tracking-[0.2em] text-medical-light uppercase">
-              The problem
+              {language === "hi" ? "समस्या" : language === "gu" ? "સમસ્યા" : "The problem"}
             </span>
             <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-medical-dark">
-              Rural India deserves better healthcare
+              {language === "hi" ? "ग्रामीण भारत बेहतर स्वास्थ्य सेवा का हकदार है" : language === "gu" ? "ગ્રામીણ ભારત વધુ સારી હેલ્થકેરને પાત્ર છે" : "Rural India deserves better healthcare"}
             </h2>
             <p className="mt-3 text-muted-foreground">
-              900 million Indians live outside major cities. They face long travel, specialist
-              shortages, confusing reports, and dangerously delayed diagnoses.
+              {language === "hi"
+                ? "९० करोड़ से अधिक भारतीय बड़े शहरों से बाहर रहते हैं। उन्हें लंबी यात्रा, डॉक्टरों की कमी और निदान में खतरनाक देरी का सामना करना पड़ता है।"
+                : language === "gu"
+                  ? "૯૦ કરોડથી વધુ ભારતીયો મોટા શહેરોની બહાર રહે છે. તેઓ લાંબી મુસાફરી, ડોકટરોની અછત અને નિદાનમાં જોખમી વિલંબનો સામનો કરે છે."
+                  : "900 million Indians live outside major cities. They face long travel, specialist shortages, confusing reports, and dangerously delayed diagnoses."}
             </p>
           </Reveal>
 
           <div className="mt-12 grid md:grid-cols-2 gap-6">
             <Reveal className="glass rounded-3xl p-7 hover-lift">
               <h3 className="font-display text-lg font-bold text-medical-dark mb-4">
-                The challenges
+                {language === "hi" ? "चुनौतियां" : language === "gu" ? "પડકારો" : "The challenges"}
               </h3>
               <ul className="space-y-3 text-sm">
-                {[
-                  "Travel of 20+ km to reach a specialist",
-                  "1 doctor per 1,500 people in rural areas",
-                  "Lab reports written in inaccessible jargon",
-                  "Critical diagnosis delayed by weeks",
-                ].map((c) => (
+                {(language === "hi"
+                  ? [
+                      "विशेषज्ञ तक पहुँचने के लिए 20+ किमी की यात्रा",
+                      "ग्रामीण क्षेत्रों में प्रति 1,500 लोगों पर केवल 1 डॉक्टर",
+                      "कठिन वैज्ञानिक शब्दों में लिखी गई लैब रिपोर्ट",
+                      "महत्वपूर्ण निदान में हफ्तों की देरी",
+                    ]
+                  : language === "gu"
+                    ? [
+                        "નિષ્ણાત સુધી પહોંચવા માટે 20+ કિમીની મુસાફરી",
+                        "ગ્રામીણ વિસ્તારોમાં દર 1,500 લોકો વચ્ચે માત્ર 1 ડૉક્ટર",
+                        "મુશ્કેલ વૈજ્ઞાનિક શબ્દોમાં લખાયેલ લેબ રિપોર્ટ",
+                        "મહત્વપૂર્ણ નિદાનમાં અઠવાડિયાઓનો વિલંબ",
+                      ]
+                    : [
+                        "Travel of 20+ km to reach a specialist",
+                        "1 doctor per 1,500 people in rural areas",
+                        "Lab reports written in inaccessible jargon",
+                        "Critical diagnosis delayed by weeks",
+                      ]
+                ).map((c) => (
                   <li key={c} className="flex gap-3">
                     <span className="mt-1 h-1.5 w-1.5 rounded-full bg-medical-dark" />
                     <span className="text-muted-foreground">{c}</span>
@@ -235,14 +254,31 @@ function Home() {
               </ul>
             </Reveal>
             <Reveal delay={0.1} className="rounded-3xl p-7 gradient-medical text-white hover-lift">
-              <h3 className="font-display text-lg font-bold mb-4">How ArogyaSathi solves it</h3>
+              <h3 className="font-display text-lg font-bold mb-4">
+                {language === "hi" ? "आरोग्यसाथी इसे कैसे हल करता है" : language === "gu" ? "આરોગ્યસાથી તેને કેવી રીતે હલ કરે છે" : "How ArogyaSathi solves it"}
+              </h3>
               <ul className="space-y-3 text-sm">
-                {[
-                  "AI assistant in 3+ languages, available 24×7",
-                  "On-device disease detection from a phone photo",
-                  "Reports explained in plain Hindi/Gujarati/English",
-                  "Direct consult with verified specialists",
-                ].map((c) => (
+                {(language === "hi"
+                  ? [
+                      "3+ भाषाओं में एआई सहायक, 24×7 उपलब्ध",
+                      "फोन फोटो से सीधे रोग की पहचान",
+                      "सरल हिंदी/गुजराती/अंग्रेजी में रिपोर्ट का स्पष्टीकरण",
+                      "सत्यापित विशेषज्ञों से सीधे जुड़ने की सुविधा",
+                    ]
+                  : language === "gu"
+                    ? [
+                        "3+ ભાષાઓમાં એઆઈ સહાયક, 24×7 ઉપલબ્ધ",
+                        "ફોન ફોટો પરથી સીધી રોગની ઓળખ",
+                        "સરળ હિન્દી/ગુજરાતી/અંગ્રેજીમાં રિપોર્ટની સ્પષ્ટતા",
+                        "ચકાસાયેલ નિષ્ણાતો સાથે સીધા જોડાવાની સુવિધા",
+                      ]
+                    : [
+                        "AI assistant in 3+ languages, available 24×7",
+                        "On-device disease detection from a phone photo",
+                        "Reports explained in plain Hindi/Gujarati/English",
+                        "Direct consult with verified specialists",
+                      ]
+                ).map((c) => (
                   <li key={c} className="flex gap-3">
                     <span className="mt-1 h-1.5 w-1.5 rounded-full bg-white" />
                     <span className="text-white/90">{c}</span>
@@ -259,10 +295,10 @@ function Home() {
         <div className="mx-auto max-w-7xl">
           <Reveal className="text-center max-w-2xl mx-auto">
             <span className="text-xs font-bold tracking-[0.2em] text-medical-light uppercase">
-              Core features
+              {language === "hi" ? "मुख्य विशेषताएं" : language === "gu" ? "મુખ્ય વિશેષતાઓ" : "Core features"}
             </span>
             <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-medical-dark">
-              Everything you need to stay healthy
+              {t("core_features")}
             </h2>
           </Reveal>
           <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -290,7 +326,7 @@ function Home() {
                       ))}
                     </ul>
                     <div className="mt-5 flex items-center gap-1 text-xs font-semibold text-medical-light group-hover:gap-2 transition-all">
-                      Try it <ArrowRight className="h-3 w-3" />
+                      {language === "hi" ? "इसे आज़माएं" : language === "gu" ? "અજમાવી જુઓ" : "Try it"} <ArrowRight className="h-3 w-3" />
                     </div>
                   </div>
                 </Link>
@@ -305,10 +341,10 @@ function Home() {
         <div className="mx-auto max-w-5xl">
           <Reveal className="text-center max-w-2xl mx-auto">
             <span className="text-xs font-bold tracking-[0.2em] text-medical-light uppercase">
-              Innovation
+              {language === "hi" ? "नवाचार" : language === "gu" ? "નવીનતા" : "Innovation"}
             </span>
             <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-medical-dark">
-              What sets us apart
+              {language === "hi" ? "क्या हमें अलग बनाता है" : language === "gu" ? "અમને શું ખાસ બનાવે છે" : "What sets us apart"}
             </h2>
           </Reveal>
           <div className="mt-14 relative">
@@ -342,10 +378,10 @@ function Home() {
         <div className="mx-auto max-w-7xl">
           <Reveal className="text-center max-w-2xl mx-auto">
             <span className="text-xs font-bold tracking-[0.2em] text-medical-light uppercase">
-              Impact
+              {language === "hi" ? "प्रभाव" : language === "gu" ? "અસર" : "Impact"}
             </span>
             <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-medical-dark">
-              Who we serve & how it helps
+              {language === "hi" ? "हम किसकी सेवा करते हैं और यह कैसे मदद करता है" : language === "gu" ? "અમે કોની સેવા કરીએ છીએ અને તે કેવી રીતે મદદ કરે છે" : "Who we serve & how it helps"}
             </h2>
           </Reveal>
           <div className="mt-12 grid md:grid-cols-2 gap-6">
@@ -354,12 +390,14 @@ function Home() {
                 <div className="h-10 w-10 rounded-xl gradient-medical text-white flex items-center justify-center">
                   <Users className="h-5 w-5" />
                 </div>
-                <h3 className="font-display text-lg font-bold text-medical-dark">Primary users</h3>
+                <h3 className="font-display text-lg font-bold text-medical-dark">
+                  {language === "hi" ? "प्राथमिक उपयोगकर्ता" : language === "gu" ? "પ્રાથમિક વપરાશકર્તાઓ" : "Primary users"}
+                </h3>
               </div>
               <ul className="space-y-3 text-sm text-muted-foreground">
-                <li>• Rural communities with limited clinic access</li>
-                <li>• Elderly people needing constant guidance</li>
-                <li>• Patients with limited healthcare literacy</li>
+                <li>• {language === "hi" ? "ग्रामीण समुदाय जिनके पास क्लीनिक की सीमित पहुँच है" : language === "gu" ? "ગ્રામીણ સમુદાયો જેમની પાસે ક્લિનિક્સની મર્યાદિત પહોંચ છે" : "Rural communities with limited clinic access"}</li>
+                <li>• {language === "hi" ? "निरंतर स्वास्थ्य मार्गदर्शन की आवश्यकता वाले बुजुर्ग" : language === "gu" ? "સતત આરોગ્ય માર્ગદર્શનની જરૂરિયાતવાળા વૃદ્ધો" : "Elderly people needing constant guidance"}</li>
+                <li>• {language === "hi" ? "सीमित स्वास्थ्य साक्षरता वाले मरीज" : language === "gu" ? "મર્યાદિત આરોગ્ય સાક્ષરતાવાળા દર્દીઓ" : "Patients with limited healthcare literacy"}</li>
               </ul>
             </Reveal>
             <Reveal delay={0.1} className="glass rounded-3xl p-7">
@@ -367,12 +405,14 @@ function Home() {
                 <div className="h-10 w-10 rounded-xl gradient-medical text-white flex items-center justify-center">
                   <TrendingUp className="h-5 w-5" />
                 </div>
-                <h3 className="font-display text-lg font-bold text-medical-dark">Benefits</h3>
+                <h3 className="font-display text-lg font-bold text-medical-dark">
+                  {language === "hi" ? "लाभ" : language === "gu" ? "લાભો" : "Benefits"}
+                </h3>
               </div>
               <ul className="space-y-3 text-sm text-muted-foreground">
-                <li>• Reduced travel and out-of-pocket costs</li>
-                <li>• Earlier detection of life-threatening conditions</li>
-                <li>• Faster, better-informed treatment decisions</li>
+                <li>• {language === "hi" ? "यात्रा और अतिरिक्त चिकित्सीय खर्चों में कमी" : language === "gu" ? "મુસાફરી અને વધારાના તબીબી ખર્ચમાં ઘટાડો" : "Reduced travel and out-of-pocket costs"}</li>
+                <li>• {language === "hi" ? "जानलेवा बीमारियों की शुरुआती पहचान" : language === "gu" ? "જીવલેણ રોગોની પ્રારંભિક ઓળખ" : "Earlier detection of life-threatening conditions"}</li>
+                <li>• {language === "hi" ? "त्वरित और बेहतर उपचार निर्णय" : language === "gu" ? "ઝડપી અને વધુ માહિતગાર સારવાર નિર્ણયો" : "Faster, better-informed treatment decisions"}</li>
               </ul>
             </Reveal>
           </div>
@@ -384,9 +424,11 @@ function Home() {
         <div className="mx-auto max-w-7xl">
           <Reveal className="text-center max-w-2xl mx-auto">
             <span className="text-xs font-bold tracking-[0.2em] text-medical-light uppercase">
-              Roadmap
+              {language === "hi" ? "रोडमैप" : language === "gu" ? "રોડમેપ" : "Roadmap"}
             </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-medical-dark">Future vision</h2>
+            <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-medical-dark">
+              {t("future_roadmap")}
+            </h2>
           </Reveal>
           <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {roadmap.map((r, i) => (
@@ -417,16 +459,16 @@ function Home() {
             </div>
             <div className="relative">
               <h2 className="font-display text-3xl sm:text-4xl font-bold">
-                Healthcare in your pocket. Right now.
+                {language === "hi" ? "स्वास्थ्य सेवा आपकी जेब में। अभी।" : language === "gu" ? "હેલ્થકેર તમારા ખિસ્સામાં. હમણાં જ." : "Healthcare in your pocket. Right now."}
               </h2>
               <p className="mt-3 text-white/85 max-w-xl mx-auto">
-                Join ArogyaSathi for faster, smarter, more accessible care.
+                {language === "hi" ? "तेज़, स्मार्ट और अधिक सुलभ देखभाल के लिए आरोग्यसाथी से जुड़ें।" : language === "gu" ? "ઝડપી, સ્માર્ટ અને વધુ સુલભ સંભાળ માટે આરોગ્યસાથી સાથે જોડાઓ." : "Join ArogyaSathi for faster, smarter, more accessible care."}
               </p>
               <Link
                 to="/signup"
                 className="ripple mt-7 inline-flex items-center gap-2 px-7 py-3 rounded-full bg-white text-medical-dark font-bold hover:-translate-y-0.5 transition"
               >
-                Create free account <ArrowRight className="h-4 w-4" />
+                {language === "hi" ? "मुफ़्त खाता बनाएँ" : language === "gu" ? "મફત ખાતું બનાવો" : "Create free account"} <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </Reveal>

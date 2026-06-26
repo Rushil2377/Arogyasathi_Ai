@@ -1,8 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { Heart, Mail, Phone, MapPin } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { useTranslation } from "@/lib/translationContext";
 
 export default function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer className="relative mt-24 border-t border-border bg-medical-tint/40">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-14 grid gap-10 md:grid-cols-3">
@@ -12,30 +15,25 @@ export default function Footer() {
             <span className="font-display text-lg font-bold text-gradient">ArogyaSathi AI</span>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            AI-powered healthcare companion built for rural and semi-urban India.
+            {t("footer_tagline")}
           </p>
         </div>
         <div>
-          <h4 className="font-semibold text-medical-dark mb-3 text-sm">Features</h4>
+          <h4 className="font-semibold text-medical-dark mb-3 text-sm">{t("reports_doctors").split(" ")[0]}</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>
               <Link to="/ai-health-assistant" className="hover:text-medical-dark transition">
-                AI Assistant
+                {t("ai_assistant")}
               </Link>
             </li>
             <li>
               <Link to="/disease-detection" className="hover:text-medical-dark transition">
-                Disease Detection
+                {t("detection")}
               </Link>
             </li>
             <li>
               <Link to="/report-analysis" className="hover:text-medical-dark transition">
-                Report Analysis
-              </Link>
-            </li>
-            <li>
-              <Link to="/report-analysis" className="hover:text-medical-dark transition">
-                Nearby Hospitals
+                {t("reports_doctors")}
               </Link>
             </li>
           </ul>
@@ -55,8 +53,11 @@ export default function Footer() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-border py-5 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} ArogyaSathi AI. All rights reserved.
+      <div className="border-t border-border py-5 text-center text-xs text-muted-foreground px-4">
+        <div>© {new Date().getFullYear()} ArogyaSathi AI. {t("footer_rights")}</div>
+        <div className="mt-1.5 text-[10px] text-muted-foreground/80 max-w-2xl mx-auto leading-relaxed">
+          {t("footer_disclaimer")}
+        </div>
       </div>
     </footer>
   );
