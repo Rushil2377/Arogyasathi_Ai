@@ -1,3 +1,5 @@
+import { predictSkinDiseaseOffline } from "./gemini";
+
 /**
  * Service to interact with the SkinVision-ViT FastAPI Backend
  */
@@ -9,6 +11,18 @@ export interface SkinPredictionResult {
   confidence: number;
   allProbabilities: Record<string, number>;
   inferenceTime: number;
+}
+
+/**
+ * Helper to convert file to base64 Data URL
+ */
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
 }
 
 /**
@@ -45,7 +59,28 @@ export async function predictSkinDisease(file: File): Promise<SkinPredictionResu
       inferenceTime: Math.round(data.inference_time_ms ?? 0),
     };
   } catch (err) {
-    console.warn("[SkinVision] Backend offline. Running high-fidelity local simulation...", err);
+    console.warn("[SkinVision] Backend offline. Attempting real Gemini offline screening...", err);
+
+    // Try to run real Gemini prediction if API Key is set
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (apiKey) {
+      try {
+        const base64Url = await fileToBase64(file);
+        const startTime = Date.now();
+        const res = await predictSkinDiseaseOffline(base64Url);
+        const inferenceTime = Date.now() - startTime;
+        
+        console.log("[SkinVision] Gemini offline screening success:", res);
+        return {
+          disease: res.prediction,
+          confidence: Math.round(res.confidence * 100), // convert 0-1 to 0-100 percentage
+          allProbabilities: res.probabilities,
+          inferenceTime,
+        };
+      } catch (geminiErr) {
+        console.error("[SkinVision] Gemini offline screening failed, falling back to simulation:", geminiErr);
+      }
+    }
     
     // Simulate inference delay (800ms)
     await new Promise((resolve) => setTimeout(resolve, 800));

@@ -90,8 +90,8 @@ function Login() {
             Pick up where you left off — chats, reports, and detections stay synced on your device.
           </p>
         </div>
-        <div className="relative z-10 flex items-center gap-2 text-white/80 text-sm">
-          <Heart className="h-4 w-4" /> Trusted by 50,000+ users
+        <div className="relative z-10 flex items-center gap-2">
+
         </div>
         <div
           aria-hidden

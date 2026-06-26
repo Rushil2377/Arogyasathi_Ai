@@ -110,9 +110,9 @@ function Signup() {
           <ul className="space-y-2.5 text-white/90 text-sm">
             {[
               "24×7 AI health assistant",
-              "Instant disease detection",
+              "Instant skin disease detection",
               "Plain-language report analysis",
-              "Verified specialist consultation",
+              "Find nearby hospitals",
             ].map((t) => (
               <li key={t} className="flex items-center gap-2">
                 <Check className="h-4 w-4" /> {t}

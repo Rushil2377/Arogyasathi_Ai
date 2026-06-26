@@ -424,23 +424,48 @@ export async function refineSkinPrediction(
 
   const mimeType = match[1];
   const base64Data = match[2];
-  const candidatesList = Object.keys(probabilities).join(", ");
 
-  const prompt = `You are an expert dermatological AI assistant.
-A Vision Transformer model has scanned this skin image and predicted the following top candidates (with their confidence scores):
+  const prompt = `You are an expert dermatological AI clinical assistant.
+A Vision Transformer (ViT) model has analyzed a skin image and predicted the following candidate classes (with their relative probabilities):
 ${JSON.stringify(probabilities)}
 
-Your task is to analyze the image visually (checking lesion structure, color, boundaries, symmetry, and scaling) and refine the prediction.
-Choose the MOST accurate condition from the candidate list: [${candidatesList}, Normal, Inconclusive Result].
+Your task is to analyze the image visually and output the most accurate dermatological classification.
+You must choose exactly one category from the following supported conditions:
+- "Normal": Healthy skin without visible lesions, active inflammation, or atypical pigmentation.
+- "Acne": Inflammatory papules, pustules, comedones, or nodules.
+- "Eczema": Dry, itchy, red, scaly, or excoriated patches, often lichenified.
+- "Psoriasis": Well-demarcated red plaques covered with characteristic thick, silvery-white scales.
+- "Vitiligo": Clear, depigmented white patches with sharp borders.
+- "Warts": Hyperkeratotic, rough, exophytic papules, potentially with tiny black dots.
+- "Melanoma": Highly suspicious pigmented lesion showing asymmetry, border irregularity, color variation (brown/black/red), diameter > 6mm, or signs of evolution.
+- "Basal Cell Carcinoma": Translucent, pearly papule with telangiectasia, often showing central ulceration or rolled borders.
+- "Fungal Infections": Ring-like red scaly plaques (tinea) or intertriginous erythema with satellite pustules (candidiasis).
+- "Dermatitis": Non-specific inflammatory skin reaction, redness, scaling, or mild vesicles.
+- "Rosacea": Persistent central facial redness, telangiectasias, or inflammatory bumps without comedones.
+- "Inconclusive Result": The image is too blurry, poorly lit, low contrast, or does not clearly display features matching any of the above.
 
-Respond with ONLY the name of the chosen category (exactly as written in the list). Do not include any explanation, markdown, or other text.`;
+CRITICAL ACCURACY GUIDELINE (Avoid False Negatives):
+- If the image contains a visible skin lesion, rash, active inflammation, redness, scaling, papules, pustules, plaques, or any other visible abnormality, you MUST NOT classify it as "Normal".
+- "Normal" is reserved ONLY for skin that is completely clear, healthy, and free of any visible dermatological lesions or pathological signs.
+- If a lesion or rash is visible but does not fit any of the specific disease categories well, select "Dermatitis" (for general skin inflammation/irritation) or "Inconclusive Result" rather than "Normal".
+
+Guidelines for your decision:
+1. Use the ViT model's predictions as a prior (starting point). However, if your visual inspection of the lesion shows clear features of a different condition from the supported list, you should override the ViT's prediction to select the more accurate classification.
+2. Examine lesion structure: check symmetry, borders (defined vs. ill-defined), color consistency, and scaling.
+3. If the image is blurry, poorly lit, or doesn't show a clear skin patch, choose "Inconclusive Result".
+
+Respond with ONLY the exact name of the selected category from the list above. Do not include markdown, bold tags, extra text, or explanations.`;
 
   try {
     const text = await askArogyaSathiVision(prompt, mimeType, base64Data);
     console.log("[ArogyaSathi] Gemini prediction refinement:", text);
     
     // Match the response against the valid candidates
-    const validLabels = [...Object.keys(probabilities), "Normal", "Inconclusive Result"];
+    const validLabels = [
+      "Normal", "Acne", "Eczema", "Psoriasis", "Vitiligo", "Warts",
+      "Melanoma", "Basal Cell Carcinoma", "Fungal Infections", "Dermatitis", "Rosacea",
+      "Inconclusive Result"
+    ];
     for (const label of validLabels) {
       if (text.toUpperCase() === label.toUpperCase() || text.toUpperCase().includes(label.toUpperCase())) {
         return label;
@@ -452,3 +477,123 @@ Respond with ONLY the name of the chosen category (exactly as written in the lis
     return topPrediction;
   }
 }
+
+/**
+ * Uses Gemini Vision directly to screen the image when the FastAPI backend is offline.
+ */
+export async function predictSkinDiseaseOffline(
+  base64DataUrl: string,
+): Promise<{
+  prediction: string;
+  confidence: number;
+  probabilities: Record<string, number>;
+}> {
+  if (!API_KEY) {
+    throw new Error("Gemini API Key is not set");
+  }
+
+  const match = base64DataUrl.match(/^data:(image\/[a-zA-Z+.-]+);base64,(.+)$/);
+  if (!match) {
+    throw new Error("Invalid image base64 data");
+  }
+
+  const mimeType = match[1];
+  const base64Data = match[2];
+
+  const prompt = `You are an expert dermatological AI screening assistant.
+Analyze this image of a skin lesion/patch. Your task is to identify the skin condition.
+You must choose exactly one category from the following supported conditions:
+- "Normal": Healthy skin without visible lesions, active inflammation, or atypical pigmentation.
+- "Acne": Inflammatory papules, pustules, comedones, or nodules.
+- "Eczema": Dry, itchy, red, scaly, or excoriated patches, often lichenified.
+- "Psoriasis": Well-demarcated red plaques covered with characteristic thick, silvery-white scales.
+- "Vitiligo": Clear, depigmented white patches with sharp borders.
+- "Warts": Hyperkeratotic, rough, exophytic papules, potentially with tiny black dots.
+- "Melanoma": Highly suspicious pigmented lesion showing asymmetry, border irregularity, color variation (brown/black/red), diameter > 6mm, or signs of evolution.
+- "Basal Cell Carcinoma": Translucent, pearly papule with telangiectasia, often showing central ulceration or rolled borders.
+- "Fungal Infections": Ring-like red scaly plaques (tinea) or intertriginous erythema with satellite pustules (candidiasis).
+- "Dermatitis": Non-specific inflammatory skin reaction, redness, scaling, or mild vesicles.
+- "Rosacea": Persistent central facial redness, telangiectasias, or inflammatory bumps without comedones.
+- "Inconclusive Result": The image is too blurry, poorly lit, low contrast, or does not clearly display features matching any of the above.
+
+CRITICAL ACCURACY GUIDELINE (Avoid False Negatives):
+- If the image contains a visible skin lesion, rash, active inflammation, redness, scaling, papules, pustules, plaques, or any other visible abnormality, you MUST NOT classify it as "Normal".
+- "Normal" is reserved ONLY for skin that is completely clear, healthy, and free of any visible dermatological lesions or pathological signs.
+- If a lesion or rash is visible but does not fit any of the specific disease categories well, select "Dermatitis" (for general skin inflammation/irritation) or "Inconclusive Result" rather than "Normal".
+
+Determine the confidence score (from 0.0 to 1.0) for the top condition, and also estimate the likelihood/probability for the top 5 most likely conditions from the supported categories list above (the probabilities MUST sum up to approximately 1.0, and the top prediction must have the highest probability).
+
+Respond with a JSON object of the following format:
+{
+  "prediction": "Name of the condition",
+  "confidence": 0.85,
+  "probabilities": {
+    "Name of condition 1": 0.85,
+    "Name of condition 2": 0.10,
+    ...
+  }
+}
+Do not write any markdown code blocks, do not use \`\`\`json, do not write any other explanation or text. Output ONLY the raw JSON string.`;
+
+  try {
+    const text = await askArogyaSathiVision(prompt, mimeType, base64Data);
+    console.log("[ArogyaSathi Offline] Gemini prediction response:", text);
+
+    // Clean JSON response
+    let cleaned = text.trim();
+    if (cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
+    }
+    cleaned = cleaned.trim();
+
+    const data = JSON.parse(cleaned);
+    const prediction = data.prediction;
+    const confidence = data.confidence;
+    const probabilities = data.probabilities;
+
+    // Validate prediction is one of the supported categories
+    const validCategories = [
+      "Normal", "Acne", "Eczema", "Psoriasis", "Vitiligo", "Warts",
+      "Melanoma", "Basal Cell Carcinoma", "Fungal Infections", "Dermatitis", "Rosacea",
+      "Inconclusive Result"
+    ];
+
+    let finalPrediction = "Inconclusive Result";
+    for (const cat of validCategories) {
+      if (prediction.toUpperCase() === cat.toUpperCase() || prediction.toUpperCase().includes(cat.toUpperCase())) {
+        finalPrediction = cat;
+        break;
+      }
+    }
+
+    // Standardize probabilities format
+    const formattedProbs: Record<string, number> = {};
+    if (probabilities && typeof probabilities === "object") {
+      for (const [key, val] of Object.entries(probabilities)) {
+        let matchedKey = key;
+        for (const cat of validCategories) {
+          if (key.toUpperCase() === cat.toUpperCase() || key.toUpperCase().includes(cat.toUpperCase())) {
+            matchedKey = cat;
+            break;
+          }
+        }
+        formattedProbs[matchedKey] = typeof val === "number" ? val : parseFloat(val as string) || 0;
+      }
+    }
+
+    // Ensure the predicted class is present in probabilities
+    if (!formattedProbs[finalPrediction]) {
+      formattedProbs[finalPrediction] = confidence || 0.8;
+    }
+
+    return {
+      prediction: finalPrediction,
+      confidence: confidence || formattedProbs[finalPrediction] || 0.8,
+      probabilities: formattedProbs,
+    };
+  } catch (err) {
+    console.error("[ArogyaSathi Offline] Failed to parse/execute Gemini offline prediction:", err);
+    throw err;
+  }
+}
+
